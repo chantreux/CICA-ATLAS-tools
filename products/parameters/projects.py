@@ -636,7 +636,7 @@ def get_period_climatology_dict(project: str, product_type: str,
     Returns
     -------
     dict
-        Dictionary of climatology periods
+        Dictionary of climatology periods, or empty dict for trends
         
     Raises
     ------
@@ -646,8 +646,9 @@ def get_period_climatology_dict(project: str, product_type: str,
     if product_type not in ["climatology", "temporal_series", "trends"]:
         raise ValueError(f"Invalid product type: {product_type}")
     
+    # Trends type doesn't use climatology periods
     if product_type == "trends":
-        raise ValueError("Climatology periods not applicable for trends type")
+        return {}
     
     canonical = PROJECT_ALIASES.get(project, project)
     

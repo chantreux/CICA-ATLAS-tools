@@ -118,19 +118,40 @@ def get_time_aggregation(variable: str) -> str:
     """
     yaml = YAML()
     
-    with open(AGG_FUNCTIONS_FILE) as f:
-        agg_dict = yaml.load(f)
+    # Remove suffixes like 'bals' or 'baisimip' to get base variable
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import load_parameters
+    var_base = load_parameters.index_only(variable)
     
-    if variable in agg_dict.get("mean", []):
+    # Try to load from file, fall back to hardcoded mapping if file doesn't exist
+    try:
+        with open(AGG_FUNCTIONS_FILE) as f:
+            agg_dict = yaml.load(f)
+    except FileNotFoundError:
+        # Fallback mapping based on common patterns
+        agg_dict = {
+            "mean": ["tas", "t", "tx", "tn", "pr", "huss", "sfcwind", "psl", "rsds", 
+                    "rlds", "evspsbl", "mrsos", "mrro", "clt", "sst", "siconc", 
+                    "pethg", "spei6", "spi6"],
+            "min": ["tnn"],
+            "max": ["txx", "tx35", "tx40"],
+            "sum": ["rx1day", "rx5day", "r01mm", "r10mm", "r20mm", "cdd", "cd", 
+                   "hd", "fd", "tr", "dtr", "sdii"]
+        }
+    
+    # Check both full variable name and base variable name
+    if var_base in agg_dict.get("mean", []) or variable in agg_dict.get("mean", []):
         return "mean"
-    elif variable in agg_dict.get("min", []):
+    elif var_base in agg_dict.get("min", []) or variable in agg_dict.get("min", []):
         return "min"
-    elif variable in agg_dict.get("max", []):
+    elif var_base in agg_dict.get("max", []) or variable in agg_dict.get("max", []):
         return "max"
-    elif variable in agg_dict.get("sum", []):
+    elif var_base in agg_dict.get("sum", []) or variable in agg_dict.get("sum", []):
         return "sum"
     else:
-        raise ValueError(f"Variable {variable} not found in aggregation file {AGG_FUNCTIONS_FILE}")
+        raise ValueError(f"Variable {variable} (base: {var_base}) not found in aggregation file {AGG_FUNCTIONS_FILE}")
 
 
 # =============================================================================
