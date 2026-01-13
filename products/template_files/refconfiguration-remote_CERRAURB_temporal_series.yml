@@ -1,0 +1,40 @@
+directories:
+  input: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/datasets/CICAv2.0_refactored/compressed_v2/c3s-atlas-dataset/
+  temporary: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/c3s-atlas-dataset_v2_URB/temporal_products/var_replace/main_replace/set_replace
+  output: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/c3s-atlas-dataset_v2_URB/
+  validation: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/c3s-atlas-dataset_v2_URB/validation/
+
+data:
+- type: data_type_replace
+  project: project_replace
+  spatial_mask: spatial_mask_replace
+  scenario: scenario_replace
+  period: period_replace #1940-2022
+  variable:
+  - var_replace
+  members_subset: None
+  source: local_machine
+
+products:
+  temporal_series-user:
+    variable: var_replace
+    scenarios:
+      main: main_replace
+      baseline: baseline_replace
+      fill_baseline: fill_baseline_replace
+    magnitudes:
+      raw: true
+      anom: true
+      relanom: relanom_replace
+    periods: period_climatology_replace
+    baselines:
+      AR5: 1986-2005
+      AR6: 1995-2014
+      WMO2: 1981-2010
+      WMO3: 1991-2020
+    time_filters: time_filters_replace
+    time_aggregation_stat: aggregation_replace
+    region_aggregation:
+      mask_file: mask_replace
+      set: set_replace
+    chunknum: 3

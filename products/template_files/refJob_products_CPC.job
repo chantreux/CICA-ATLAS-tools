@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH --partition=meteo_long
+#SBATCH --output=Cica_product_var_replace_project_replace
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --time=72:00:00
+#SBATCH --mem-per-cpu=16gb
+
+
+
+RUNDIR=$SLURM_SUBMIT_DIR
+## From here the job starts
+index=var_replace
+experiment=main_replace
+set=set_replace
+source activate DEVELOP
+Date=$(date +'%Y%m%d%H%M%S')
+logfile=$RUNDIR/${index}_${experiment}_${set}_${Date}.log
+echo $logfile
+python /lustre/gmeteo/WORK/chantreuxa/cica/Products/products/c3scica_products/cli.py cfile_out_replace > $logfile 2>&1
+
