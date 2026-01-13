@@ -1,0 +1,41 @@
+###################################################################
+#                                                                 #
+#          Configuration file climate data pipeline               #
+#                                                                 #
+###################################################################
+
+directories:
+  existing_input: /gpfs/ces/share-7c11c2a4-9d9f-40f5-b95e-396bcbf3f608/HUB/data/ESGF/interp025/CORDEX/output/AFR-22/GERICS/MOHC-HadGEM2-ES/historical/r1i1p1/REMO2015/v1/day/tas/v20191015/
+  homogenization: /gpfs/projects/meteo/DATA/FAO/homogenization
+  temporal: /gpfs/projects/meteo/DATA/FAO/temporal_files
+requests:
+- identifier: t_daily_CORDEX-CORE_AFR-22_MOHC-HadGEM2-ES_r1i1p1_GERICS_REMO2015_v1_FAO
+  STAGES:
+  - homogenization
+  project:
+    name: cordex
+    type: projections
+    format: gridded
+  configuration:
+    variables:
+    - tas
+    temporalResolution: daily
+    orig_temporalResolution: daily
+    level: single_levels
+    domain: AFR-22
+    id: projections-cordex-domains-single-levels
+    source: CDS
+    filter_paths: True
+    experiments:
+      - name: historical
+        start: 1950-01-01
+        end: 2005-12-31
+    models:
+    - MOHC-HadGEM2-ES_r1i1p1_GERICS_REMO2015
+    area:
+      name: Global
+      coords:
+        - -90
+        - -180
+        - 90
+        - 180

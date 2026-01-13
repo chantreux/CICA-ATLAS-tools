@@ -1,0 +1,52 @@
+###################################################################
+#                                                                 #
+#          Configuration file climate data pipeline               #
+#                                                                 #
+###################################################################
+
+
+directories:
+  existing_input: /gpfs/projects/meteo/DATA/FAO/homogenization/Global/CORDEX/AFR-22/day/tasmax/gridded/MOHC-HadGEM2-ES/historical/r1i1p1/GERICS/REMO2015/v1/day/
+  temporal: /gpfs/projects/meteo/DATA/FAO/temporal_files
+
+requests:
+- identifier: tx35 for CORDEX-CORE MOHC-HadGEM2-ES_r1i1p1_GERICS_REMO2015  AFR-22
+  STAGES:
+  - indices
+  project:
+    name: CORDEX
+    type: projections
+    format: gridded
+  configuration:
+    variables:
+    - tasmax
+    temporalResolution: daily
+    orig_temporalResolution: None
+    level: single_levels
+    domain: AFR-22
+    id: projections-cordex-domains-single-levels
+    source: CDS
+    filter_paths: True
+    experiments:
+      - name: historical
+        start: 1970-01-01
+        end: 2005-12-31
+    models:
+    - MOHC-HadGEM2-ES_r1i1p1_GERICS_REMO2015
+    area:
+      name: Global
+      coords:
+        - -90
+        - -180
+        - 90
+        - 180
+
+  indices:
+    - name: tx35
+      params:
+        temporal_aggregation: 
+          - MS
+        chunksize:
+          x: 30
+          y: 60
+

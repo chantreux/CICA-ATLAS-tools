@@ -1,0 +1,43 @@
+# YML SIMPLIFICADO SOLO PARA CLIMATOLOGÍAS (sin timeseries)
+# Use este archivo si quiere generar solo mapas con anomalías climatológicas
+globals:
+  step: 'I'
+  unit: 'mm/day'
+  project: 'CERRA_climatology_simple'
+  
+  # Rango de años a procesar
+  start_year: 1990
+  end_year: 1995
+  
+  domain_list:
+    - 'Global'
+  experiment: 'NONE'
+  model: 'NONE'
+  
+  # IMPORTANTE: Solo triple_map y single_map (SIN timeseries)
+  type_of_plot: ['triple_map', 'single_map']
+  
+  # Configuración de climatología
+  climatology:
+    enabled: true
+    reference_period_start: 1991
+    reference_period_end: 2020
+
+  # NO USAR version_list si no necesitas timeseries
+  # Si descomentas esto, asegúrate de que los archivos existen:
+  # lon_point: -3.8
+  # lat_point: 40.4
+  # version_list:
+  #   - 'CERRA_test_finals'
+
+datasets:
+  - name: 'CERRA-land_Test_I'
+    v1_list: 
+      - 'pr'
+    v2_list:
+      - 'pr'
+  - name: 'CERRA_CICA_I'
+    v1_list:
+      - 'pr'
+    v2_list:
+      - 'pr'

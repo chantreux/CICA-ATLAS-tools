@@ -1,0 +1,32 @@
+globals:
+  step: 'I'
+  unit: 'mm/day'
+  project: 'CERRA_climatology_NUEVO'
+  
+  # Rango de años a procesar (se ignora para 'climatology', solo se usa el período de referencia)
+  start_year: 1991
+  end_year: 1991  # Solo procesará 1 iteración para climatología
+  
+  domain_list:
+    - 'Global'
+  
+  experiment: 'NONE'
+  model: 'NONE'
+  
+  # NUEVA FORMA: Incluir 'climatology' en type_of_plot
+  # Esto generará mapas de climatología (promedio del período de referencia)
+  # NO genera anomalías, solo el promedio climatológico
+  type_of_plot: ['climatology']
+  
+  # Configuración del período de referencia para la climatología
+  climatology:
+    reference_period_start: 1991
+    reference_period_end: 2020
+
+datasets:
+  - name: 'CERRA-land_Test_I'
+    v1_list: ['pr']
+    v2_list: ['pr']
+  - name: 'CERRA_CICA_I'
+    v1_list: ['pr']
+    v2_list: ['pr']

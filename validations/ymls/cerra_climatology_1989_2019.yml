@@ -1,0 +1,51 @@
+# Configuración para generar climatología 1989-2019
+globals:
+  step: 'I'
+  unit: 'mm/day'
+  project: 'CERRA_climatology_1989_2019'
+  
+  # Year configuration (just to keep the loop running once, the climatology logic uses the reference period)
+  start_year: 1990
+  end_year: 2020
+  
+  domain_list:
+    - 'Global'
+  experiment: 'NONE'
+  model: 'NONE'
+  
+  # Plot type: only climatology
+  type_of_plot: ['timeseries']
+
+  lon_point: -3.8
+  lat_point: 40.4
+  version_list:
+    - 'CERRA-land_CICAv2_Finals'
+  
+  # CLIMATOLOGY CONFIGURATION
+  climatology:
+    enabled: true
+    reference_period_start: 1989
+    reference_period_end: 2019
+
+datasets:
+  - name: 'CERRA-land_CICAv2_Finals'
+    v1_list: 
+      - 'evspsbl'
+      - 'pr'
+      - 'r01mm'
+      - 'r10mm'
+      - 'r20mm'
+      - 'rx1day'
+      - 'rx5day'
+      - 'sdii'
+      - 'cdd'
+    v2_list :
+      - 'evspsbl'
+      - 'pr'
+      - 'r01mm'
+      - 'r10mm'
+      - 'r20mm'
+      - 'rx1day'
+      - 'rx5day'
+      - 'sdii'
+      - 'cdd'

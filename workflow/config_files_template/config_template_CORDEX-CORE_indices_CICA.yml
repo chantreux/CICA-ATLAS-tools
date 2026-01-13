@@ -1,0 +1,53 @@
+###################################################################
+#                                                                 #
+#          Configuration file climate data pipeline               #
+#                                                                 #
+###################################################################
+
+
+directories:
+  existing_input: /gpfs/projects/meteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/datasets/CICAv2/CORDEX-EUR/biasadjustment/CORDEX/EUR-11/prbaisimip/gr012
+  temporal: /gpfs/projects/meteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/datasets/CICAv2/TEST/temp/
+  indices: /gpfs/projects/meteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/datasets/CICAv2/TEST/finals
+
+requests:
+- identifier: rx1day for CORDEX-CORE MOHC-HadGEM2-ES_r1i1p1_GERICS_REMO2015  AFR-22
+  STAGES:
+  - indices
+  project:
+    name: CORDEX
+    type: projections
+    format: gridded
+  configuration:
+    variables:
+    - prbaisimip
+    temporalResolution: daily
+    orig_temporalResolution: None
+    level: single_levels
+    domain: AFR-22
+    id: projections-cordex-domains-single-levels
+    source: CDS
+    filter_paths: False
+    experiments:
+      - name: historical
+        start: 1970-01-01
+        end: 2005-12-31
+    models:
+    - MOHC-HadGEM2-ES_r1i1p1_GERICS-REMO2015
+    area:
+      name: Global
+      coords:
+        - -90
+        - -180
+        - 90
+        - 180
+
+  indices:
+    - name: rx1day_cicaba
+      params:
+        temporal_aggregation: 
+          - MS
+        chunksize:
+          x: 30
+          y: 60
+

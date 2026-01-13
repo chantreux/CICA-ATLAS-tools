@@ -1,0 +1,63 @@
+###################################################################
+#                                                                 #
+#          Configuration file climate data pipeline               #
+#                                                                 #
+###################################################################
+directories:
+  existing_input: /gpfs/projects/meteo/DATA/FAO/homogenization/Global/CORDEX/AFR-22/day/tas/gridded/MOHC-HadGEM2-ES/historical/r1i1p1/GERICS/REMO2015/v1/day/
+  interpolation: /gpfs/projects/meteo/DATA/FAO/interpolation
+  biasadjustment: /gpfs/projects/meteo/DATA/FAO/biasadjustment_test_impute/test
+  temporal: /gpfs/projects/meteo/DATA/FAO/temporal_files
+
+requests:
+- identifier: tbaisimip_daily_FAO
+  STAGES:
+  - interpolation
+  - bias-adjustment
+  project:
+    name: CORDEX
+    type: projections
+    format: gridded
+  configuration:
+    variables:
+    - tas
+    temporalResolution: daily
+    orig_temporalResolution: None
+    level: single_levels
+    domain: AFR-22
+    id: projections-cordex-domains-single-levels
+    source: CDS
+    filter_paths: True
+    experiments:
+      - name: historical
+        start: 1970-01-01
+        end: 2005-12-31
+    models:
+    - MOHC-HadGEM2-ES_r1i1p1_GERICS_REMO2015
+    area:
+      name: Global
+      coords:
+        - -90
+        - -180
+        - 90
+        - 180
+  bias_adjustment:
+      method: ibicus-isimip
+      processors: 4
+      multiprocessing: true
+      chunk_size:
+        x: 60
+        y: 60
+      parameters:
+        observations:
+          path: /gpfs/projects/meteo/DATA/FAO/homogenization/Global/ERA5/day/tas/gridded/day/
+          period:
+            start: 1970-01-01
+            end: 2005-12-31
+          project_name: FAO
+        historical: /gpfs/projects/meteo/DATA/FAO/interpolation/Global/CORDEX/AFR-22/day/tas/gr025/MOHC-HadGEM2-ES/historical/r1i1p1/GERICS/REMO2015/v1/day/
+  interpolation:
+    grid_type:
+      custom_grid: None
+      grid_path: /gpfs/users/chantreuxa/FAO/fao-scripts/tools/grid_era
+    method: conservative_normed

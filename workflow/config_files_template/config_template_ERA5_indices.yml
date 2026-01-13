@@ -1,0 +1,50 @@
+###################################################################
+#                                                                 #
+#          Configuration file climate data pipeline               #
+#                                                                 #
+###################################################################
+
+
+directories:
+
+  existing_input: /gpfs/projects/meteo/DATA/FAO/homogenization/Global/ERA5/day/tasmax/gridded/
+  indices: /gpfs/projects/meteo/DATA/FAO/final_products/indices/
+  temporal: /gpfs/projects/meteo/DATA/FAO/temporal_files
+
+
+requests:
+  - identifier: tx35 for ERA5
+    STAGES:
+      - indices
+    project:
+      name: ERA5
+      type: observations
+      format: gridded
+    configuration:
+      variables:
+      - tasmax
+      domain: None
+      filter_paths: False
+      id: reanalysis-era5-single-levels
+      timeCoverage:
+        start: 1940-01-01
+        end: 2022-12-31
+      source: CDS #existing input de rodri
+      models:
+      area:
+        name: Global
+        coords:
+          - -90
+          - -180
+          - 90
+          - 180
+
+    indices:
+      - name: tx35
+        params:
+          temporal_aggregation: 
+           - MS
+          chunksize:
+            x: 30
+            y: 60
+

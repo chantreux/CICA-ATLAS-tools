@@ -1,0 +1,48 @@
+# Ejemplo de configuración con climatologías activadas
+globals:
+  step: 'I'
+  unit: 'mm/day'
+  project: 'CERRA_test_climatology'
+  
+  # Year configuration - use either single year OR year range
+  start_year: 2015
+  end_year: 2020
+  
+  domain_list:
+    - 'Global'
+  experiment: 'NONE'
+  model: 'NONE'
+  
+  # Plot type configuration - can be single type or list of types
+  # Single type examples: 'timeseries', 'triple_map', 'single_map'
+  # Multiple types example: ['triple_map', 'single_map', 'timeseries']
+  type_of_plot: ['triple_map', 'single_map']
+
+  lon_point: -3.8
+  lat_point: 40.4
+  version_list:
+    - 'CERRA_test_finals'
+    - 'CERRA_test_interpolation'
+  
+  # ============================================================
+  # CLIMATOLOGY CONFIGURATION (NEW FEATURE)
+  # ============================================================
+  # Esto generará mapas de anomalías ADICIONALES a los mapas normales
+  # Los mapas de anomalías tendrán el sufijo "_ANOMALY" en el nombre
+  climatology:
+    enabled: true                    # Activar/desactivar cálculo de climatologías
+    reference_period_start: 1991     # Año inicial del período de referencia
+    reference_period_end: 2020       # Año final del período de referencia
+  # ============================================================
+
+datasets:
+  - name: 'CERRA-land_Test_I'
+    v1_list: 
+      - 'pr'
+    v2_list :
+      - 'pr'
+  - name: 'CERRA_CICA_I'
+    v1_list:
+      - 'pr'
+    v2_list:
+      - 'pr'

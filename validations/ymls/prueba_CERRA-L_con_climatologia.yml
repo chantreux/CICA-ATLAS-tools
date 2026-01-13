@@ -1,0 +1,45 @@
+# Ejemplo de configuración YML con climatologías habilitadas
+# Este archivo genera mapas normales Y mapas de anomalías climatológicas
+globals:
+  step: 'I'
+  unit: 'mm/day'
+  project: 'CERRA_test_climatology'
+  
+  # Rango de años a procesar
+  start_year: 1990
+  end_year: 1995
+  
+  domain_list:
+    - 'Global'
+  experiment: 'NONE'
+  model: 'NONE'
+  
+  # Tipos de plots: se generarán mapas normales + anomalías si climatology está habilitada
+  type_of_plot: ['triple_map', 'single_map']
+  
+  # Configuración de climatología (NUEVO)
+  climatology:
+    enabled: true                    # Activar cálculo de anomalías
+    reference_period_start: 1991     # Año inicial del período de referencia
+    reference_period_end: 2020       # Año final del período de referencia
+    # El sistema calculará la media 1991-2020 y restará de cada año
+    # Esto genera archivos adicionales con sufijo _ANOMALY.png
+
+  # Configuración para series temporales
+  lon_point: -3.8
+  lat_point: 40.4
+  version_list:
+    - 'CERRA_test_finals'
+    - 'CERRA_test_interpolation'
+
+datasets:
+  - name: 'CERRA-land_Test_I'
+    v1_list: 
+      - 'pr'
+    v2_list:
+      - 'pr'
+  - name: 'CERRA_CICA_I'
+    v1_list:
+      - 'pr'
+    v2_list:
+      - 'pr'

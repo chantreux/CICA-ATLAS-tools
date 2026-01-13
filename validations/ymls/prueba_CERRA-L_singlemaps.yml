@@ -1,0 +1,24 @@
+globals:
+  step: 'I'
+  unit: 'mm/day'
+  project: 'CERRA_test_singlemaps'
+  # Ajusta el rango de años según lo que haya en la ruta indicada
+  # Puedes editar start_year / end_year después de ver el resultado del listado
+  start_year: 1985
+  end_year: 2019
+  domain_list:
+    - 'Global'
+  experiment: 'NONE'
+  model: 'NONE'
+  # Solo mapas simples
+  type_of_plot: ["single_map"]
+  lon_point: -3.8
+  lat_point: 40.4
+  version_list: []
+
+datasets:
+  - name: 'CERRA-land_CICAv2'
+    v1_list:
+      - 'evspsbl'
+    v2_list :
+      - 'evspsbl'
