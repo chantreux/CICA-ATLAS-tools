@@ -13,10 +13,19 @@ Compatible with workflow/generation_scripts/ structure for future unification.
 
 import sys
 import os
+from typing import Dict, List, Tuple, Optional, Union
 
 # Add parent directory to path to import load_parameters
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import load_parameters
+
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+# Default version for period calculations
+DEFAULT_PERIOD_VERSION = "v2"
 
 
 # =============================================================================
@@ -586,7 +595,7 @@ def get_spatial_mask(project: str, variable: str) -> str:
         return None
 
 
-def get_baseline_dict(project: str) -> dict:
+def get_baseline_dict(project: str) -> Dict[str, str]:
     """
     Get baseline periods dictionary for a project.
     
@@ -599,7 +608,7 @@ def get_baseline_dict(project: str) -> dict:
         
     Returns
     -------
-    dict
+    Dict[str, str]
         Dictionary of baseline periods
         
     Raises
@@ -616,7 +625,7 @@ def get_baseline_dict(project: str) -> dict:
 
 
 def get_period_climatology_dict(project: str, product_type: str, 
-                                 is_historical: bool, baselines: dict) -> dict:
+                                 is_historical: bool, baselines: Dict[str, str]) -> Dict[str, str]:
     """
     Get period climatology dictionary based on product type and project.
     
@@ -630,12 +639,12 @@ def get_period_climatology_dict(project: str, product_type: str,
         Type of product ("climatology", "temporal_series", "trends")
     is_historical : bool
         Whether main experiment is historical
-    baselines : dict
+    baselines : Dict[str, str]
         Baseline periods dictionary
         
     Returns
     -------
-    dict
+    Dict[str, str]
         Dictionary of climatology periods, or empty dict for trends
         
     Raises
@@ -661,7 +670,7 @@ def get_period_climatology_dict(project: str, product_type: str,
 
 
 def get_period_experiments_dict(project: str, variable: str, 
-                                 main_experiment: str, dataset) -> dict:
+                                 main_experiment: str, dataset) -> Union[Dict[str, str], str]:
     """
     Get period information for experiments.
     
@@ -680,12 +689,12 @@ def get_period_experiments_dict(project: str, variable: str,
         
     Returns
     -------
-    dict or str
+    Union[Dict[str, str], str]
         Dictionary mapping experiments to periods, or single period string
     """
     canonical = PROJECT_ALIASES.get(project, project)
     
-    hist, fut = dataset.load_period(variable, version="v2")
+    hist, fut = dataset.load_period(variable, version=DEFAULT_PERIOD_VERSION)
     hist_period = f"{hist[0]}-{hist[-1]}"
     
     # For observation datasets

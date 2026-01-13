@@ -19,11 +19,6 @@ from ruamel.yaml import YAML
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import load_parameters
 
-
-# =============================================================================
-# ANOMALY CONFIGURATION
-# =============================================================================
-
 # Variables that use relative anomaly instead of absolute
 # (used in config['products'][product_key]['magnitudes'])
 RELATIVE_ANOMALY_VARS = [
@@ -119,11 +114,6 @@ def get_time_aggregation(variable: str) -> str:
     yaml = YAML()
     
     # Remove suffixes like 'bals', 'baisimip', 'fullperiod' to get base variable
-    import sys
-    import os
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    import load_parameters
-    
     var_base = load_parameters.index_only(variable)
     
     # Also remove 'fullperiod' suffix
