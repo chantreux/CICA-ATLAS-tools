@@ -125,21 +125,9 @@ def get_time_aggregation(variable: str) -> str:
         var_base = var_base.replace("reference", "")
     
     # Try to load from file, fall back to hardcoded mapping if file doesn't exist
-    try:
-        with open(AGG_FUNCTIONS_FILE) as f:
-            agg_dict = yaml.load(f)
-    except FileNotFoundError:
-        # Fallback mapping based on common patterns
-        agg_dict = {
-            "mean": ["tas", "t", "tx", "tn", "pr", "huss", "sfcwind", "psl", "rsds", 
-                    "rlds", "evspsbl", "mrsos", "mrro", "clt", "sst", "siconc", 
-                    "pethg", "spei6", "spi6"],
-            "min": ["tnn"],
-            "max": ["txx", "tx35", "tx40"],
-            "sum": ["rx1day", "rx5day", "r01mm", "r10mm", "r20mm", "cdd", "cd", 
-                   "hd", "fd", "tr", "dtr", "sdii"]
-        }
-    
+
+    with open(AGG_FUNCTIONS_FILE) as f:
+        agg_dict = yaml.load(f)
     # Check both full variable name and base variable name
     if var_base in agg_dict.get("mean", []) or variable in agg_dict.get("mean", []):
         return "mean"
@@ -205,7 +193,7 @@ ANNUAL_ONLY_VARS = [
 ]
 
 
-def get_time_filters_dict(variable: str) -> dict:
+def get_time_filters_variable(variable: str) -> dict:
     """
     Get time filters dictionary for a variable.
     

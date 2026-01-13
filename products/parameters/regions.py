@@ -1,55 +1,10 @@
 """
 Regional parameters for CICA-ATLAS Products module.
 
-This module contains all region-specific parameters including:
-- Regional mask file paths
-- Time filters configuration
-- AR6 reference regions
 
-Compatible with workflow/generation_scripts/ structure for future unification.
 """
 
 
-# =============================================================================
-# REGION MASKS
-# =============================================================================
-
-# Region mask files per set
-# (used in config['products'][product_key]['region_aggregation']['mask_file'])
-REGION_MASKS = {
-    "AR6": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/IPCC-WGI-reference-regions-v4_areas.geojson",
-    "eucra": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/EUCRA_areas.geojson",
-    "european-countries": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/european-countries_areas.geojson",
-    "megacities": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/megacities.geojson",
-    "cities-rural": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/cities_contour.geojson",
-    "cities-urban": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/cities_contour.geojson"
-}
-
-
-# =============================================================================
-# TIME FILTERS
-# =============================================================================
-
-# Time filters configuration
-TIME_FILTERS = {
-    "Annual": "01-12",
-    "DecFeb": "12-02",
-    "MarMay": "03-05",
-    "JunAug": "06-08",
-    "SepNov": "09-11",
-    "Jan": "01-01",
-    "Feb": "02-02",
-    "Mar": "03-03",
-    "Apr": "04-04",
-    "May": "05-05",
-    "Jun": "06-06",
-    "Jul": "07-07",
-    "Aug": "08-08",
-    "Sep": "09-09",
-    "Oct": "10-10",
-    "Nov": "11-11",
-    "Dec": "12-12"
-}
 
 
 # =============================================================================
@@ -112,37 +67,3 @@ AR6_REGIONS = {
     }
 }
 
-
-# =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def get_region_mask(set_name: str) -> str:
-    """
-    Get region mask file path for a set.
-    
-    Used in config['products'][product_key]['region_aggregation']['mask_file'].
-    
-    Parameters
-    ----------
-    set_name : str
-        Set name (e.g., "AR6", "eucra", "european-countries")
-        
-    Returns
-    -------
-    str or None
-        Path to region mask file, or None if not found
-    """
-    return REGION_MASKS.get(set_name)
-
-
-def get_time_filters() -> dict:
-    """
-    Get time filters dictionary.
-    
-    Returns
-    -------
-    dict
-        Dictionary mapping time filter names to month ranges
-    """
-    return TIME_FILTERS.copy()

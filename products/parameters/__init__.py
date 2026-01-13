@@ -3,47 +3,62 @@ Unified parameter files for CICA-ATLAS Products module.
 Compatible with workflow/generation_scripts/ structure for future unification.
 """
 
+# =============================================================================
+# IMPORTS FROM projects.py
+# =============================================================================
 from .projects import (
-    # Core definitions
+    # Core project definitions
     CANONICAL_PROJECTS,
     PROJECT_ALIASES,
     SUPPORTED_PROJECTS,
     OBSERVATION_PROJECTS,
     PROJECTION_PROJECTS,
     
-    # Project properties
+    # Project configuration dictionaries
     PROJECT_ROOTS,
     PROJECT_EXPERIMENTS,
     PROJECT_PERIODS,
     PROJECT_DOMAINS,
     PROJECT_IDS,
     PROJECT_GRIDS,
-    
-    # Products-specific
     PROJECT_DATA_TYPE,
-    PROJECT_TRENDS,
-    PROJECT_ROBUSTNESS,
-    BASELINES,
-    CLIMATOLOGY_PERIODS,
     
-    # Helper functions
+    # Helper functions from projects.py
     get_project_root,
     is_observation_project,
     is_projection_project,
     get_project_experiments,
     get_project_periods,
     get_project_domains,
-    get_scenario_lines,
-    get_warming_levels,
-    get_spatial_mask,
-    get_baseline_dict,
-    get_period_climatology_dict,
-    get_period_experiments_dict,
-    get_scenario_lines_dict,
     get_data_type,
-    get_trend_enabled,
 )
 
+# =============================================================================
+# IMPORTS FROM projects_products.py
+# =============================================================================
+from .projects_products import (
+    # Generated dictionaries
+    PROJECT_TRENDS,
+    PROJECT_BASELINES,
+    PROJECT_ROBUSTNESS,
+    CLIMATOLOGY_FUTURE_PERIODS,
+    REGION_MASKS,
+    
+    # Helper functions from projects_products.py
+    generate_baselines_project,
+    get_baseline_project,
+    get_scenario_lines,
+    get_scenario_lines_project_var,
+    get_warming_levels,
+    get_spatial_mask,
+    get_period_climatology,
+    get_period_experiments,
+    get_region_mask,
+)
+
+# =============================================================================
+# IMPORTS FROM variables.py
+# =============================================================================
 from .variables import (
     # Anomaly configuration
     RELATIVE_ANOMALY_VARS,
@@ -59,7 +74,7 @@ from .variables import (
     
     # Time filters
     ANNUAL_ONLY_VARS,
-    get_time_filters_dict,
+    get_time_filters_variable,
     
     # Variable lists
     VAR_NOT_CALCULATED,
@@ -70,16 +85,20 @@ from .variables import (
     get_variables_for_version,
 )
 
+# =============================================================================
+# IMPORTS FROM regions.py  
+# =============================================================================
 from .regions import (
-    REGION_MASKS,
-    TIME_FILTERS,
     AR6_REGIONS,
-    get_region_mask,
-    get_time_filters,
 )
 
+# =============================================================================
+# PUBLIC API
+# =============================================================================
 __all__ = [
-    # Projects
+    # -------------------------------------------------------------------------
+    # From projects.py - Core definitions
+    # -------------------------------------------------------------------------
     "CANONICAL_PROJECTS",
     "PROJECT_ALIASES",
     "SUPPORTED_PROJECTS",
@@ -92,27 +111,43 @@ __all__ = [
     "PROJECT_IDS",
     "PROJECT_GRIDS",
     "PROJECT_DATA_TYPE",
-    "PROJECT_TRENDS",
-    "PROJECT_ROBUSTNESS",
-    "BASELINES",
-    "CLIMATOLOGY_PERIODS",
+    
+    # -------------------------------------------------------------------------
+    # From projects.py - Helper functions
+    # -------------------------------------------------------------------------
     "get_project_root",
     "is_observation_project",
     "is_projection_project",
     "get_project_experiments",
     "get_project_periods",
     "get_project_domains",
+    "get_data_type",
+    
+    # -------------------------------------------------------------------------
+    # From projects_products.py - Generated dictionaries
+    # -------------------------------------------------------------------------
+    "PROJECT_TRENDS",
+    "PROJECT_BASELINES",
+    "PROJECT_ROBUSTNESS",
+    "CLIMATOLOGY_FUTURE_PERIODS",
+    "REGION_MASKS",
+    
+    # -------------------------------------------------------------------------
+    # From projects_products.py - Helper functions
+    # -------------------------------------------------------------------------
+    "generate_baselines_project",
+    "get_baseline_project",
     "get_scenario_lines",
+    "get_scenario_lines_project_var",
     "get_warming_levels",
     "get_spatial_mask",
-    "get_baseline_dict",
-    "get_period_climatology_dict",
-    "get_period_experiments_dict",
-    "get_scenario_lines_dict",
-    "get_data_type",
-    "get_trend_enabled",
+    "get_period_climatology",
+    "get_period_experiments",
+    "get_region_mask",
     
-    # Variables
+    # -------------------------------------------------------------------------
+    # From variables.py - Variable configuration
+    # -------------------------------------------------------------------------
     "RELATIVE_ANOMALY_VARS",
     "get_anomaly_dict",
     "AGG_FUNCTIONS_FILE",
@@ -120,7 +155,7 @@ __all__ = [
     "EXTREME_PERIOD_AGGREGATION",
     "get_period_aggregation",
     "ANNUAL_ONLY_VARS",
-    "get_time_filters_dict",
+    "get_time_filters_variable",
     "VAR_NOT_CALCULATED",
     "URBAN_VARS",
     "LAND_ONLY_VARS",
@@ -128,10 +163,8 @@ __all__ = [
     "VERSION_VARIABLES",
     "get_variables_for_version",
     
-    # Regions
-    "REGION_MASKS",
-    "TIME_FILTERS",
+    # -------------------------------------------------------------------------
+    # From regions.py - Regional configuration
+    # -------------------------------------------------------------------------
     "AR6_REGIONS",
-    "get_region_mask",
-    "get_time_filters",
 ]

@@ -13,20 +13,9 @@ Compatible with workflow/generation_scripts/ structure for future unification.
 
 import sys
 import os
-from typing import Dict, List, Tuple, Optional, Union
 
 # Add parent directory to path to import load_parameters
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import load_parameters
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-# Default version for period calculations
-DEFAULT_PERIOD_VERSION = "v2"
-
 
 # =============================================================================
 # CORE PROJECT DEFINITIONS
@@ -156,10 +145,22 @@ PROJECT_PERIODS = {
 
 # Domains per project
 PROJECT_DOMAINS = {
-    "CORDEX-CORE": ["AFR", "AUS", "CAM", "EAS", "EUR", "NAM", "SAM", "SEA", "WAS"],
+    "CMIP6": ["None"],
+    "CMIP5": ["None"],
     "CORDEX-EUR-11": ["EUR"],
+    "CORDEX-CORE": ["AFR", "AUS", "CAM", "EAS", "EUR", "NAM", "SAM", "SEA", "WAS"],
     "CORDEX-CORERUR": ["EUR"],
     "CORDEX-COREURB": ["EUR"],
+    "ERA5": ["None"],
+    "ERA5-Land": ["None"],
+    "E-OBS": ["None"],
+    "ORAS5": ["None"],
+    "CERRA": ["None"],
+    "CERRARUR": ["None"],
+    "CERRAURB": ["None"],
+    "CPC": ["None"],
+    "BERKELEY": ["None"],
+    "SSTSAT": ["None"]
 }
 
 # Project IDs for CDS/API (used in config['data'][0]['project_id'])
@@ -173,14 +174,33 @@ PROJECT_IDS = {
     "ERA5": "reanalysis-era5-single-levels",
     "ERA5-Land": "reanalysis-era5-land",
     "E-OBS": "insitu-gridded-observations-europe",
+    "ORAS5": "reanalysis-oras5",
+    "CERRA": "reanalysis-cerra-single-levels",
+    "CERRARUR": "reanalysis-cerra-single-levels",
+    "CERRAURB": "reanalysis-cerra-single-levels",
+    "CPC": "insitu-gridded-observations-global-and-regional",
+    "BERKELEY": "insitu-gridded-observations-global-and-regional",
+    "SSTSAT": "satellite-sea-surface-temperature",
 }
 
 # Reference grids per project
 PROJECT_GRIDS = {
-    "CMIP6": {"resolution": 1.0, "type": "regular"},
-    "CMIP5": {"resolution": 1.0, "type": "regular"},
-    "CORDEX-EUR-11": {"resolution": 0.12, "type": "rotated"},
-    "CORDEX-CORE": {"resolution": 0.25, "type": "rotated"},
+    "CMIP6": {"resolution": 1.0, "reference_grid": "land_sea_mask_grd100.nc"},
+    "CMIP5": {"resolution": 2.0, "reference_grid": "land_sea_mask_grd200.nc"},
+    "CORDEX-EUR-11": {"resolution": 0.125, "reference_grid": "land_sea_mask_grd012p5_EUR11-CORDEX.nc"},
+    "CORDEX-CORE": {"resolution": 0.25, "reference_grid": "land_sea_mask_grd025.nc"},
+    "CORDEX-CORERUR": {"resolution": 0.25, "reference_grid": "land_sea_mask_grd025.nc"},
+    "CORDEX-COREURB": {"resolution": 0.25, "reference_grid": "land_sea_mask_grd025.nc"},
+    "ERA5": {"resolution": 0.25, "reference_grid": "RAW"},
+    "ERA5-Land": {"resolution": 0.1, "reference_grid": "RAW"},
+    "E-OBS": {"resolution": 0.125, "reference_grid": "land_sea_mask_grd012_EOBS_EUR11-CORDEX.nc"},
+    "ORAS5": {"resolution": 0.25, "reference_grid": "land_sea_mask_grd025.nc"},
+    "CERRA": {"resolution": 0.065, "reference_grid": "land_sea_mask_grd011.nc"},
+    "CERRARUR": {"resolution": 0.065, "reference_grid": "land_sea_mask_grd011.nc"},
+    "CERRAURB": {"resolution": 0.065, "reference_grid": "land_sea_mask_grd011.nc"},
+    "CPC": {"resolution": 1, "reference_grid": "RAW"},
+    "BERKELEY": {"resolution": 1, "reference_grid": "RAW"},
+    "SSTSAT": {"resolution": 0.05, "reference_grid": "RAW"},
 }
 
 
@@ -208,163 +228,9 @@ PROJECT_DATA_TYPE = {
     "SSTSAT": "observation",
 }
 
-# Trend calculation enabled per project (used in config['products'][product_key]['magnitudes']['trends'])
-# Only enabled for observation datasets when type='trends'
-PROJECT_TRENDS = {
-    "ERA5": True,
-    "ERA5-Land": True,
-    "E-OBS": True,
-    "ORAS5": True,
-    "CERRA": True,
-    "CERRARUR": True,
-    "CERRAURB": True,
-    "CPC": True,
-    "BERKELEY": True,
-    "SSTSAT": True,
-}
 
-# Robustness calculation enabled per project (used in config['products'][product_key]['magnitudes']['anom_emergence'])
-# Boolean values: True for projection projects, False for observation projects
-PROJECT_ROBUSTNESS = {
-    "CMIP6": True,
-    "CMIP5": True,
-    "CORDEX-EUR-11": True,
-    "CORDEX-CORE": True,
-    "CORDEX-CORERUR": True,
-    "CORDEX-COREURB": True,
-    "ERA5": False,
-    "ERA5-Land": False,
-    "E-OBS": False,
-    "ORAS5": False,
-    "CERRA": False,
-    "CERRARUR": False,
-    "CERRAURB": False,
-    "CPC": False,
-    "BERKELEY": False,
-    "SSTSAT": False,
-}
 
-# Baseline periods per project (used in config['products'][product_key]['baselines'])
-BASELINES = {
-    "CMIP6": {
-        "preIndustrial": "1850-1900",
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO1": "1961-1990",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "CMIP5": {
-        "preIndustrial": "1850-1900",
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO1": "1961-1990",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "CORDEX-EUR-11": {
-        "preIndustrial": "1850-1900",
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO1": "1961-1990",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "CORDEX-CORE": {
-        "preIndustrial": "1850-1900",
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO1": "1961-1990",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "CORDEX-CORERUR": {
-        "preIndustrial": "1850-1900",
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO1": "1961-1990",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "CORDEX-COREURB": {
-        "preIndustrial": "1850-1900",
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO1": "1961-1990",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "ERA5": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO1": "1961-1990",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "ERA5-Land": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO1": "1961-1990",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "E-OBS": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO1": "1961-1990",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "ORAS5": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "CERRA": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "CERRARUR": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "CERRAURB": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "CPC": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "BERKELEY": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-    "SSTSAT": {
-        "AR5": "1986-2005",
-        "AR6": "1995-2014",
-        "WMO2": "1981-2010",
-        "WMO3": "1991-2020"
-    },
-}
 
-# Climatology periods for projection projects (used in config['products'][product_key]['periods'])
-CLIMATOLOGY_PERIODS = {
-    "near": "2021-2040",
-    "medium": "2041-2060",
-    "long": "2081-2100"
-}
 
 
 # =============================================================================
@@ -480,302 +346,6 @@ def get_project_domains(project: str) -> list:
     return PROJECT_DOMAINS.get(canonical, ["None"])
 
 
-def get_scenario_lines(project: str, main_experiment: str = "None") -> dict:
-    """
-    Get scenario line configuration for a project.
-    
-    Used in config['products'][product_key]['scenarios'].
-    
-    Parameters
-    ----------
-    project : str
-        Project name
-    main_experiment : str
-        Main experiment name
-        
-    Returns
-    -------
-    dict
-        Dictionary with 'main', 'baseline', and 'fill_baseline' keys
-    """
-    canonical = PROJECT_ALIASES.get(project, project)
-    
-    if canonical in OBSERVATION_PROJECTS:
-        return {
-            "main": None,
-            "baseline": None,
-            "fill_baseline": None
-        }
-    
-    if canonical in PROJECTION_PROJECTS:
-        result = {
-            "main": main_experiment,
-            "baseline": "historical",
-            "fill_baseline": []
-        }
-        
-        # Adjust baseline for fullperiod variables
-        # This will be handled in variable-specific logic
-        
-        # Set fill_baseline based on project
-        if canonical == "CMIP6":
-            if main_experiment == "ssp119":
-                result["fill_baseline"] = ["ssp119", "ssp126", "ssp245", "ssp370", "ssp585"]
-            else:
-                result["fill_baseline"] = ["ssp126", "ssp245", "ssp370", "ssp585"]
-        elif canonical in ["CORDEX-CORE", "CORDEX-CORERUR", "CORDEX-COREURB"]:
-            result["fill_baseline"] = ["rcp26", "rcp85"]
-        else:  # CMIP5, CORDEX-EUR-11
-            result["fill_baseline"] = ["rcp26", "rcp45", "rcp85"]
-        
-        return result
-    
-    raise ValueError(f"Scenarios not defined for project {project}")
-
-
-def get_warming_levels(project: str) -> tuple:
-    """
-    Get warming levels and file path for a project.
-    
-    Used in config['products'][product_key]['warming_levels'].
-    
-    Parameters
-    ----------
-    project : str
-        Project name
-        
-    Returns
-    -------
-    tuple
-        (warming_levels_list, warming_file_path)
-    """
-    canonical = PROJECT_ALIASES.get(project, project)
-    
-    if canonical not in PROJECTION_PROJECTS:
-        return [], None
-    
-    warming_levels = [1.5, 2, 3, 4]
-    
-    if canonical == "CMIP6":
-        warming_file = "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/warming_levels/CMIP6_WarmingLevels.csv"
-    else:
-        warming_file = "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/warming_levels/CMIP5_WarmingLevels.csv"
-    
-    return warming_levels, warming_file
-
-
-def get_spatial_mask(project: str, variable: str) -> str:
-    """
-    Get spatial mask file path for a project and variable.
-    
-    Used in config['data'][0]['spatial_mask'].
-    
-    Parameters
-    ----------
-    project : str
-        Project name
-    variable : str
-        Variable name
-        
-    Returns
-    -------
-    str or None
-        Path to spatial mask file, or None if not applicable
-    """
-    canonical = PROJECT_ALIASES.get(project, project)
-    
-    if "CORDEX-EUR-11" in canonical:
-        if "bals" in variable or "baisimip" in variable:
-            return "/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/CORDEX-EUR-11_EuropeOnly.nc"
-        else:
-            return "/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/CORDEX-EUR-11_domain_simplified.nc"
-    elif canonical == "E-OBS":
-        return "/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/EOBS_EuropeOnly.nc"
-    else:
-        return None
-
-
-def get_baseline_dict(project: str) -> Dict[str, str]:
-    """
-    Get baseline periods dictionary for a project.
-    
-    Used in config['products'][product_key]['baselines'].
-    
-    Parameters
-    ----------
-    project : str
-        Project name
-        
-    Returns
-    -------
-    Dict[str, str]
-        Dictionary of baseline periods
-        
-    Raises
-    ------
-    ValueError
-        If baselines not defined for project
-    """
-    canonical = PROJECT_ALIASES.get(project, project)
-    
-    if canonical not in BASELINES:
-        raise ValueError(f"Baselines not defined for project {project}")
-    
-    return BASELINES[canonical]
-
-
-def get_period_climatology_dict(project: str, product_type: str, 
-                                 is_historical: bool, baselines: Dict[str, str]) -> Dict[str, str]:
-    """
-    Get period climatology dictionary based on product type and project.
-    
-    Used in config['products'][product_key]['periods'].
-    
-    Parameters
-    ----------
-    project : str
-        Project name
-    product_type : str
-        Type of product ("climatology", "temporal_series", "trends")
-    is_historical : bool
-        Whether main experiment is historical
-    baselines : Dict[str, str]
-        Baseline periods dictionary
-        
-    Returns
-    -------
-    Dict[str, str]
-        Dictionary of climatology periods, or empty dict for trends
-        
-    Raises
-    ------
-    ValueError
-        If product type is invalid
-    """
-    if product_type not in ["climatology", "temporal_series", "trends"]:
-        raise ValueError(f"Invalid product type: {product_type}")
-    
-    # Trends type doesn't use climatology periods
-    if product_type == "trends":
-        return {}
-    
-    canonical = PROJECT_ALIASES.get(project, project)
-    
-    # For projection datasets (non-historical runs)
-    if canonical in PROJECTION_PROJECTS and not is_historical:
-        return CLIMATOLOGY_PERIODS.copy()
-    else:
-        # For observation datasets or historical runs, use baselines
-        return baselines.copy()
-
-
-def get_period_experiments_dict(project: str, variable: str, 
-                                 main_experiment: str, dataset) -> Union[Dict[str, str], str]:
-    """
-    Get period information for experiments.
-    
-    Used in config['data'][0]['period'].
-    
-    Parameters
-    ----------
-    project : str
-        Project name
-    variable : str
-        Variable name
-    main_experiment : str
-        Main experiment name
-    dataset : Dataset
-        Dataset object from load_parameters
-        
-    Returns
-    -------
-    Union[Dict[str, str], str]
-        Dictionary mapping experiments to periods, or single period string
-    """
-    canonical = PROJECT_ALIASES.get(project, project)
-    
-    hist, fut = dataset.load_period(variable, version=DEFAULT_PERIOD_VERSION)
-    hist_period = f"{hist[0]}-{hist[-1]}"
-    
-    # For observation datasets
-    if canonical in OBSERVATION_PROJECTS:
-        if canonical == "BERKELEY":
-            return "1960-2017"
-        return hist_period
-    
-    # For projection datasets
-    if canonical in PROJECTION_PROJECTS:
-        if "fullperiod" in variable:
-            fut_period = f"{hist[0]}-{fut[-1]}"
-        else:
-            fut_period = f"{fut[0]}-{fut[-1]}"
-        
-        period_dict = {}
-        
-        if canonical == "CMIP6":
-            if main_experiment == "ssp119":
-                period_dict = {
-                    "historical": hist_period,
-                    "ssp119": fut_period,
-                    "ssp126": fut_period,
-                    "ssp245": fut_period,
-                    "ssp370": fut_period,
-                    "ssp585": fut_period
-                }
-            else:
-                period_dict = {
-                    "historical": hist_period,
-                    "ssp126": fut_period,
-                    "ssp245": fut_period,
-                    "ssp370": fut_period,
-                    "ssp585": fut_period
-                }
-        elif "CORDEX-EUR-11" in canonical or "CORDEX-CORE" in canonical or canonical == "CMIP5":
-            period_dict = {
-                "historical": hist_period,
-                "rcp26": fut_period,
-                "rcp45": fut_period,
-                "rcp85": fut_period
-            }
-        
-        # Remove historical for fullperiod variables
-        if "fullperiod" in variable and "historical" in period_dict:
-            del period_dict["historical"]
-        
-        return period_dict
-    
-    raise ValueError(f"Period not defined for project {project}")
-
-
-def get_scenario_lines_dict(project: str, main_experiment: str, variable: str) -> dict:
-    """
-    Get scenario lines dictionary with variable-specific adjustments.
-    
-    Used in config['products'][product_key]['scenarios'].
-    
-    Parameters
-    ----------
-    project : str
-        Project name
-    main_experiment : str
-        Main experiment name
-    variable : str
-        Variable name
-        
-    Returns
-    -------
-    dict
-        Dictionary with 'main', 'baseline', and 'fill_baseline' keys
-    """
-    result = get_scenario_lines(project, main_experiment)
-    
-    # Adjust baseline for fullperiod variables
-    if "fullperiod" in variable and result["baseline"] == "historical":
-        result["baseline"] = main_experiment
-    
-    return result
-
-
 def get_data_type(project: str) -> str:
     """
     Get data type for a project.
@@ -793,30 +363,8 @@ def get_data_type(project: str) -> str:
         "observation" or "projection"
     """
     canonical = PROJECT_ALIASES.get(project, project)
-    return PROJECT_DATA_TYPE.get(canonical, "observation")
+    return PROJECT_DATA_TYPE.get(canonical, "NOT DEFINED")
 
 
-def get_trend_enabled(project: str, product_type: str) -> bool:
-    """
-    Check if trend calculation is enabled for a project and product type.
-    
-    Used in config['products'][product_key]['magnitudes']['trends'].
-    
-    Parameters
-    ----------
-    project : str
-        Project name
-    product_type : str
-        Type of product ("climatology", "temporal_series", "trends")
-        
-    Returns
-    -------
-    bool
-        True if trends should be calculated, False otherwise
-    """
-    canonical = PROJECT_ALIASES.get(project, project)
-    
-    # Trends only for observation datasets and trends type
-    return (canonical in OBSERVATION_PROJECTS and 
-            product_type == "trends" and 
-            PROJECT_TRENDS.get(canonical, False))
+
+
