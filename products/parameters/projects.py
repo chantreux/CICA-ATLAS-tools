@@ -507,8 +507,9 @@ def get_period_climatology_dict(project, type, historical, baselines):
     Returns:
         dict: Dictionary of period names -> period strings
     """
+    # For trends type, return baselines (trends are only for observations)
     if type == "trends":
-        raise ValueError("Climatology periods not applicable for trends type")
+        return baselines
     
     if is_projection_project(project) and not historical:
         return CLIMATOLOGY_PERIODS.copy()
