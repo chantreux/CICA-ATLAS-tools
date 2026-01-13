@@ -118,12 +118,21 @@ def get_time_aggregation(variable: str) -> str:
     """
     yaml = YAML()
     
-    # Remove suffixes like 'bals' or 'baisimip' to get base variable
+    # Remove suffixes like 'bals', 'baisimip', 'fullperiod' to get base variable
     import sys
     import os
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     import load_parameters
+    
     var_base = load_parameters.index_only(variable)
+    
+    # Also remove 'fullperiod' suffix
+    if "fullperiod" in var_base:
+        var_base = var_base.replace("fullperiod", "")
+    
+    # Also remove 'reference' suffix
+    if "reference" in var_base:
+        var_base = var_base.replace("reference", "")
     
     # Try to load from file, fall back to hardcoded mapping if file doesn't exist
     try:
