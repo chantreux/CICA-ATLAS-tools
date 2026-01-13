@@ -1,3 +1,17 @@
+"""
+Product configuration file generator for CICA-ATLAS climate products.
+
+This module has been refactored to separate parameters from logic:
+- All parameter declarations are now in products/parameters/
+- Product_cfile.py only contains orchestration logic
+- This structure is compatible with workflow/generation_scripts/ for future unification
+
+For parameter modifications, see:
+- products/parameters/projects.py - Project-level parameters (experiments, periods, baselines, etc.)
+- products/parameters/variables.py - Variable-level parameters (anomaly types, aggregations, filters, etc.)
+- products/parameters/regions.py - Regional masks and configurations
+"""
+
 import os
 import logging
 from ruamel.yaml import YAML
@@ -7,6 +21,29 @@ from Product_configs import get_version_config, get_output_path, check_existing_
 from Product_variables import get_variables_for_version, VERSION_VARIABLES
 import load_parameters
 from ruamel.yaml.comments import CommentedSeq
+
+# Import from unified parameter files
+from parameters import (
+    # Project functions
+    get_data_type,
+    get_trend_enabled,
+    get_project_experiments,
+    get_period_experiments_dict,
+    get_scenario_lines_dict,
+    get_warming_levels,
+    get_spatial_mask,
+    get_baseline_dict,
+    get_period_climatology_dict,
+    # Project parameters
+    PROJECT_ROBUSTNESS,
+    # Variable functions
+    get_anomaly_dict,
+    get_time_aggregation,
+    get_period_aggregation,
+    get_time_filters_dict,
+    # Region functions
+    get_region_mask,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -23,71 +60,71 @@ class Product_Config:
                  main_proj_experiment="None", type="climatology", set="None",
                  input_folder="None", output_folder="None", extreme=False):
         self.project = project
-        self.dataset = load_parameters.Dataset(project, "")
+        self.variable = variable
         self.set = set 
         self.extreme = extreme
-
-        self.historical = main_proj_experiment == "historical"
-        
-        # Set type and mask
-        if type == "climatology":
-            self.type = "climatology"
-            self.region_mask = None
-        elif type == "trends":
-            self.type = "trends"
-            self.region_mask = None
-        elif type == "temporal_series":
-            self.type = "temporal_series"
-            self.region_mask = self.load_region_mask()
-        else:
-            self.type = type
-            self.region_mask = None
-            
+        self.type = type
+        self.main_experiment = main_proj_experiment
         self.input_folder = input_folder
         self.output_folder = output_folder
-        self.main_experiment = main_proj_experiment
-        self.variable = variable
-
-        # Load configurations
-        self.data_type = self.load_data_type(project)
-        self.trend = self.load_trend(project)
-        self.anomaly = self.load_anomaly(variable)
-        self.time_aggregation = self.load_aggregation(variable)
+        
+        # Load Dataset class (still needed for load_period method)
+        self.dataset = load_parameters.Dataset(project, "")
+        self.historical = main_proj_experiment == "historical"
+        
+        # === Load ALL parameters from parameters module (NO HARDCODING) ===
+        
+        # Data type (used in config['data'][0]['type'])
+        self.data_type = get_data_type(project)
+        
+        # Trend (used in config['products'][product_key]['magnitudes']['trends'])
+        self.trend = get_trend_enabled(project, type)
+        
+        # Anomaly configuration (used in config['products'][product_key]['magnitudes'])
+        self.anomaly = get_anomaly_dict(variable, project)
+        
+        # Time aggregation (used in config['products'][product_key]['time_aggregation_stat'])
+        self.time_aggregation = get_time_aggregation(variable)
+        
+        # Period aggregation (used in config['products'][product_key]['period_aggregation_stat'])
+        self.period_aggregation = get_period_aggregation(variable, extreme)
+        
+        # Experiments (used in config['data'][0]['scenario'])
+        self.list_experiments = self.dataset.load_experiments()
+        
+        # Period for experiments (used in config['data'][0]['period'])
+        self.period_experiments = get_period_experiments_dict(project, variable, main_proj_experiment, self.dataset)
+        
+        # Robustness (used in config['products'][product_key]['magnitudes']['anom_emergence'])
+        self.robustness = PROJECT_ROBUSTNESS.get(project, False)
+        
+        # Scenario lines (used in config['products'][product_key]['scenarios'])
+        self.scenarios_lines = get_scenario_lines_dict(project, main_proj_experiment, variable)
+        
+        # Spatial mask (used in config['data'][0]['spatial_mask'])
+        self.spatial_mask = get_spatial_mask(project, variable)
+        
+        # Warming levels (used in config['products'][product_key]['warming_levels'])
+        self.levels, self.warming_file = get_warming_levels(project)
+        
+        # Region mask (used in config['products'][product_key]['region_aggregation']['mask_file'])
+        self.region_mask = get_region_mask(set) if type == "temporal_series" else None
+        
+        # Time filters (used in config['products'][product_key]['time_filters'])
+        self.time_filters = get_time_filters_dict(variable)
+        
+        # Baselines (used in config['products'][product_key]['baselines'])
+        self.baselines = get_baseline_dict(project)
+        
+        # Climatology periods (used in config['products'][product_key]['periods'])
+        self.climatology_periods = get_period_climatology_dict(project, type, self.historical, self.baselines)
         
         # File paths
-        if cfile_in is None:
-            self.cfile_in = f"configuration-remote_{project}.yml"
-        else:
-            self.cfile_in = cfile_in
-            
-        if jobfile_in is None:
-            self.jobfile_in = f"configuration-remote_{project}.yml"
-        else:
-            self.jobfile_in = jobfile_in
-            
+        self.cfile_in = cfile_in or f"configuration-remote_{project}.yml"
+        self.jobfile_in = jobfile_in or f"configuration-remote_{project}.yml"
         self.cfile_out = self.file_output(self.cfile_in, variable, project)
         self.jobfile_out = self.file_output(self.jobfile_in, variable, project)
-        
-        # Load other parameters
-        self.list_experiments = self.dataset.load_experiments()
-        self.period_experiments = self.get_period_experiments()
-        self.robustness = self.load_robustness(project)
-        self.scenarios_lines = self.load_scenarios(project, main_proj_experiment)
-        self.levels, self.warming_file = self.load_levels(project)
-        self.spatial_mask = self.load_spatial_mask()
-        self.period_aggregation = self.load_period_aggregation(extreme)
-        self.baselines = self.get_baseline_dict()
-        self.climatology_periods = self.get_period_climatology_dict()
-        self.time_filters = self.get_time_filters_dict()
 
-    def load_period_aggregation(self, extreme):
-        if not extreme:
-            return "mean"
-        else:
-            if self.variable == "tnn":
-                return "one_in_20_year_event_min"
-            else:
-                return "one_in_20_year_event_max"
 
     def file_output(self, file_in, var, project):
         directory, base_name = os.path.split(file_in)
@@ -100,29 +137,6 @@ class Product_Config:
         file_out = file_out.replace("/ref", "/")
         return file_out
     
-    def load_spatial_mask(self):
-        if "CORDEX-EUR-11" in self.project:
-            if "bals" in self.variable or "baisimip" in self.variable:
-                return "/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/CORDEX-EUR-11_EuropeOnly.nc"
-            else:
-                return "/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/CORDEX-EUR-11_domain_simplified.nc"
-        elif self.project == "E-OBS":
-            return "/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/EOBS_EuropeOnly.nc"  
-        else:
-            return None
-
-    def load_region_mask(self):
-        mask_map = {
-            "AR6": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/IPCC-WGI-reference-regions-v4_areas.geojson",
-            "eucra": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/EUCRA_areas.geojson",
-            "european-countries": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/european-countries_areas.geojson",
-            "megacities": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/megacities.geojson",
-            "cities-rural": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/cities_contour.geojson",
-            "cities-urban": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/reference-regions/cities_contour.geojson"
-        }
-        return mask_map.get(self.set)
-
-
     def display_info(self):
         logger.info(f"Project: {self.project}")
         logger.info(f"Data Type: {self.data_type}")
@@ -138,244 +152,6 @@ class Product_Config:
         logger.info(f"robustness: {self.robustness}")
         logger.info(f"historical: {self.historical}")
         logger.info(f"scenarios: {self.scenarios_lines}")
-
-    def get_time_filters_dict(self) -> Dict[str, str]:
-        """Return time filters as a structured dictionary."""
-        if self.variable in ["cd", "hd", "cdd", "cdbals", "hdbals", 
-                            "cdbaisimip", "hdbaisimip", "cddbaisimip"]:
-            return {"Annual": "01-12"}
-        else:        
-            return {
-                "Annual": "01-12",
-                "DecFeb": "12-02",
-                "MarMay": "03-05",
-                "JunAug": "06-08",
-                "SepNov": "09-11",
-                "Jan": "01-01",
-                "Feb": "02-02",
-                "Mar": "03-03",
-                "Apr": "04-04",
-                "May": "05-05",
-                "Jun": "06-06",
-                "Jul": "07-07",
-                "Aug": "08-08",
-                "Sep": "09-09",
-                "Oct": "10-10",
-                "Nov": "11-11",
-                "Dec": "12-12"
-            }
-    def get_baseline_dict(self) -> Dict[str, str]:
-        """Return baseline periods as a dictionary."""
-        dict_baselines = {}
-        if project in ["CMIP6","CMIP5","CORDEX-EUR-11","CORDEX-CORE","CORDEX-CORERUR","CORDEX-COREURB"]:
-            dict_baselines = {
-                "preIndustrial": "1850-1900",
-                "AR5": "1986-2005",
-                "AR6": "1995-2014",
-                "WMO1": "1961-1990",
-                "WMO2": "1981-2010",
-                "WMO3": "1991-2020"
-            }
-        elif project in ["CMIP6","CMIP5","CORDEX-EUR-11","CORDEX-CORE","CORDEX-CORERUR","CORDEX-COREURB","CERRA","BERKELEY","CPC","SSTSAT"]:
-            dict_baselines = {
-                "AR5": "1986-2005",
-                "AR6": "1995-2014",
-                "WMO2": "1981-2010",
-                "WMO3": "1991-2020"
-            }
-        elif project in ["ERA5","ERA5-Land","CPC","E-OBS","ORAS5"]:
-            dict_baselines = {
-                "AR5": "1986-2005",
-                "AR6": "1995-2014",
-                "WMO1": "1961-1990",
-                "WMO2": "1981-2010",
-                "WMO3": "1991-2020"
-            }
-
-            
-        else:
-            raise ValueError(f"Baselines not defined for project {project}")
-        return dict_baselines
-
-    def get_period_climatology_dict(self) -> Dict[str, str]:
-        """Return period climatology as a dictionary."""
-        if self.type == "climatology":
-            key_calculation="climatology-user"
-        elif self.type == "temporal_series":
-            key_calculation="temporal_series-user"
-        elif self.type == "trends":
-            key_calculation="trends-user"
-            raise ValueError("Climatology periods not applicable for trends type")
-        else:
-            assert self.type  in ["climatology","temporal_series","trends"], f"Invalid type {self.type}"
-        
-
-        if self.project in load_parameters.proj_datasets() and not self.historical:
-            return {
-                "near": "2021-2040",
-                "medium": "2041-2060",
-                "long": "2081-2100"
-            }
-        else:
-            return self.baselines
-
-
-    def get_period_experiments(self) -> Dict[str, str]:
-        """Return period information as a dictionary."""
-        hist, fut = self.dataset.load_period(self.variable, version="v2")
-        
-        hist_period = f"{hist[0]}-{hist[-1]}"
-        
-        if self.project in load_parameters.obs_datasets():
-            if self.project == "BERKELEY":
-                return "1960-2017"
-            return  hist_period
-        
-        if self.project in load_parameters.proj_datasets():
-            if "fullperiod" in self.variable:
-                fut_period = f"{hist[0]}-{fut[-1]}"
-            else:
-                fut_period = f"{fut[0]}-{fut[-1]}"
-            
-            period_dict = {}
-            
-            if self.project == "CMIP6":
-                if self.main_experiment == "ssp119":
-                    period_dict = {
-                        "historical": hist_period,
-                        "ssp119": fut_period,
-                        "ssp126": fut_period,
-                        "ssp245": fut_period,
-                        "ssp370": fut_period,
-                        "ssp585": fut_period
-                    }
-                else:
-                    period_dict = {
-                        "historical": hist_period,
-                        "ssp126": fut_period,
-                        "ssp245": fut_period,
-                        "ssp370": fut_period,
-                        "ssp585": fut_period
-                    }
-            elif "CORDEX-EUR-11" in self.project or "CORDEX-CORE" in self.project or self.project == "CMIP5":
-                period_dict = {
-                    "historical": hist_period,
-                    "rcp26": fut_period,
-                    "rcp45": fut_period,
-                    "rcp85": fut_period
-                }
-            
-            # Remove historical for fullperiod variables
-            if "fullperiod" in self.variable and "historical" in period_dict:
-                del period_dict["historical"]
-            
-            return period_dict
-        
-        else:
-            raise ValueError(f"Period not defined for project {self.project}")
-
-
-    def load_robustness(self, project):
-        return project in load_parameters.proj_datasets()
-
-    def load_aggregation(self, var):
-        agg_file = "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/metadata/agg-functions.yaml"
-        with open(agg_file) as f:
-            agg_dict = yaml.load(f)
-        
-        if var in agg_dict["mean"]:
-            return "mean"
-        elif var in agg_dict["min"]:
-            return "min"
-        elif var in agg_dict["max"]:
-            return "max" 
-        elif var in agg_dict["sum"]:
-            return "sum"
-        else:
-            raise ValueError(f"Variable {var} not found in aggregation file {agg_file}")
-
-    def load_data_type(self, project):
-        if project in load_parameters.obs_datasets():
-            return "observation"
-        else:
-            return "projection"
-
-    def load_trend(self, project):
-        return project in load_parameters.obs_datasets() and self.type == "trends"
-
-    def load_anomaly(self, var):
-        list_relanom = ["pr", "rx1day", "rx5day", "huss", "sfcwind", "evspsbl", 
-                       "mrsos", "mrro", "rsds", "rlds", "tr", "r01mm", "r10mm", 
-                       "r20mm", "sdii", "pethg"]
-        Dict = {}
-        
-        var = load_parameters.index_only(var)
-        
-        if var in list_relanom:
-            Dict["anomaly"] = "relative"
-        else:
-            Dict["anomaly"] = "absolute"
-
-        # Always calculate abs anomaly
-        Dict["anom"] = True
-        Dict["anom_consensus"] = True
-
-        # Activate relanom if needed
-        if Dict["anomaly"] == "relative":
-            Dict["relanom"] = True            
-            Dict["relanom_consensus"] = True
-        else:
-            Dict["relanom"] = False            
-            Dict["relanom_consensus"] = False
-
-        # Deactivate consensus when not needed    
-        if self.project not in load_parameters.proj_datasets():
-            Dict["anom_consensus"] = False
-            Dict["relanom_consensus"] = False
-
-        return Dict
-    
-    def load_levels(self, project):
-
-        if project in load_parameters.proj_datasets():
-            warming_levels = [1.5, 2, 3, 4]
-            if project=="CMIP6":
-                warming_file= "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/warming_levels/CMIP6_WarmingLevels.csv"
-            else:
-                warming_file= "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/warming_levels/CMIP5_WarmingLevels.csv"
-            return warming_levels,warming_file
-        else: 
-            return [],None
-
-    def load_scenarios(self, project, experiment="None"):
-        Dict = {}
-        
-        if project in load_parameters.obs_datasets():
-            Dict["main"] = None
-            Dict["baseline"] = None           
-            Dict["fill_baseline"] = None
-            
-        elif project in load_parameters.proj_datasets():
-            Dict["main"] = experiment
-            
-            if "fullperiod" in self.variable:
-                Dict["baseline"] = experiment
-            else:
-                Dict["baseline"] = "historical"
-            
-            if project == "CMIP6":
-                if self.main_experiment == "ssp119":
-                    Dict["fill_baseline"] = ["ssp119", "ssp126", "ssp245", "ssp370", "ssp585"]
-                else:
-                    Dict["fill_baseline"] = ["ssp126", "ssp245", "ssp370", "ssp585"]
-            elif project in ["CORDEX-CORE", "CORDEX-CORERUR", "CORDEX-COREURB"]:
-                Dict["fill_baseline"] = ["rcp26", "rcp85"]
-            else:
-                Dict["fill_baseline"] = ["rcp26", "rcp45", "rcp85"]
-        else:
-            raise ValueError(f"Scenarios not defined for project {project}")
-                
-        return Dict
 
     def get_experiments_list(self) -> List[str]:
         """Get list of experiments for this product."""
