@@ -67,7 +67,8 @@ products:
       WMO2: 1981-2010
       WMO3: 1991-2020
     time_filters: time_filters_replace
-    time_aggregation_stat: aggregation_replace
+    time_aggregation_stat: time_aggregation_replace
+    period_aggregation_stat: period_aggregation_replace
     region_aggregation:
       mask_file: mask_replace
       set: set_replace
