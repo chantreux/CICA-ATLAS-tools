@@ -46,7 +46,7 @@ PROJECT_RESOURCES = {
     },
     'ERA5-Land': {
         'cpus': 1,
-        'mem_per_cpu': '40gb',
+        'mem_per_cpu': '20gb',
         'time': '72:00:00',
         'partition': 'meteo_long'
     },
