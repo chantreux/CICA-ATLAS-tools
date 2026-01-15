@@ -45,6 +45,9 @@ from parameters import (
     get_time_aggregation,
     get_period_aggregation,
     get_time_filters_variable,
+    
+    # Cluster resources (from cluster_resources.py)
+    get_cluster_resources,
 )
 
 # Configure logging
@@ -209,6 +212,9 @@ class Product_Config:
         with open(self.jobfile_in, 'r') as f:
             job_content = f.read()
         
+        # Get cluster resources for this project
+        resources = get_cluster_resources(self.project, self.type)
+        
         # Define replacements for bash script placeholders
         replacements = {
             'var_replace': self.variable,
@@ -217,7 +223,12 @@ class Product_Config:
             'data_type_replace': get_data_type(self.project),
             'product_type_replace': self.type,
             'set_replace': self.set,
-            'cfile_out_replace': self.cfile_out
+            'cfile_out_replace': self.cfile_out,
+            # Cluster resource placeholders
+            'cpus_replace': str(resources['cpus']),
+            'mem_replace': resources['mem_per_cpu'],
+            'time_replace': resources['time'],
+            'partition_replace': resources['partition'],
         }
         
         # Apply all replacements
@@ -368,7 +379,7 @@ if __name__ == "__main__":
         cfile_trends = f"refconfiguration-remote_{project}_trends.yml"
 
         root = f"/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/{project}/"
-        jobfile = f"refJob_products_{project}.job"
+        jobfile = "refJob_products_template.job"
 
         experiment_list = get_project_experiments(project)
         list_index = get_variables_for_version(project, version)
