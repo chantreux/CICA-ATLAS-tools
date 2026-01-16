@@ -16,6 +16,15 @@ class VersionConfig:
 
 # Version configurations
 VERSION_CONFIGS = {
+    "dry": VersionConfig(
+        name="dry",
+                projects=["ERA5"],
+        sets=[],
+        trends=False,
+        climatology=True,
+        input_folder="/lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/datasets/CICAv2_refactored/CICAv2.5_refactored-extremes/raw/c3s-atlas-dataset",
+        output_folder="/lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/dry_all/"
+    ),
     "extremes": VersionConfig(
         name="extremes",
         projects=["CPC", "BERKELEY", "E-OBS", "CORDEX-EUR-11", 

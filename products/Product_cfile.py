@@ -15,10 +15,8 @@ For parameter modifications, see:
 import os
 import logging
 from ruamel.yaml import YAML
-from pathlib import Path
 from typing import Dict, Any, List, Optional
 from Product_configs import get_version_config, get_output_path, check_existing_files
-from Product_variables import get_variables_for_version, VERSION_VARIABLES
 
 # Import from unified parameter files
 from parameters import (
@@ -42,6 +40,7 @@ from parameters import (
     PROJECT_TRENDS,
     
     # Variable functions (from variables.py)
+    get_variables_for_version,
     get_anomaly_dict,
     get_time_aggregation,
     get_period_aggregation,
@@ -50,6 +49,8 @@ from parameters import (
     # Cluster resources (from cluster_resources.py)
     get_cluster_resources,
     get_chunk_config,
+    # Variable parameters (from variables.py)
+    VERSION_VARIABLES
 )
 
 # Configure logging
@@ -61,6 +62,10 @@ logger = logging.getLogger(__name__)
 yaml = YAML()
 yaml.preserve_quotes = True
 yaml.default_flow_style = False
+yaml.representer.add_representer(type(None), lambda self, data: self.represent_scalar('tag:yaml.org,2002:null', 'null'))
+
+# Template files directory
+TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'template_files')
 
 class Product_Config:
     def __init__(self, project, variable, cfile_in=None, jobfile_in=None, 
@@ -77,22 +82,30 @@ class Product_Config:
         self.output_folder = output_folder
         
         # File paths - use TEMPLATE instead of project-specific
-        self.cfile_in = cfile_in or f"refconfiguration-remote_TEMPLATE_{type}.yml"
-        self.jobfile_in = jobfile_in or f"refJob_products_TEMPLATE.job"
+        self.cfile_in = cfile_in if cfile_in else os.path.join(TEMPLATE_DIR, f"refconfiguration-remote_TEMPLATE_{type}.yml")
+        self.jobfile_in = jobfile_in if jobfile_in else os.path.join(TEMPLATE_DIR, "refJob_products_TEMPLATE.job")
         self.cfile_out = self.file_output(self.cfile_in, variable, project)
         self.jobfile_out = self.file_output(self.jobfile_in, variable, project)
 
 
     def file_output(self, file_in, var, project):
-        directory, base_name = os.path.split(file_in)
+        # Get the base filename from the template
+        base_name = os.path.basename(file_in)
         base_name = base_name.replace(f"_{self.type}", "")
-        file_out = os.path.join(directory, base_name.replace(
-            project, f"{var}_{project}_{self.main_experiment}_{self.type}_{self.set}"
-        ))
+        
+        # Create output filename
+        output_name = base_name.replace(
+            "TEMPLATE", f"{var}_{project}_{self.main_experiment}_{self.type}_{self.set}"
+        )
         if self.extreme:
-            file_out = file_out.replace(f"{self.set}", f"{self.set}_extreme")
-        file_out = file_out.replace("/ref", "/")
-        return file_out
+            output_name = output_name.replace(f"{self.set}", f"{self.set}_extreme")
+        output_name = output_name.replace("ref", "")
+        
+        # Place output file in project-specific directory
+        output_dir = f"/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/{project}/"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        return os.path.join(output_dir, output_name)
     
     def display_info(self):
         """Display configuration info (calls functions on-the-fly)."""
@@ -284,19 +297,16 @@ def produce_climatology_product(project, var, experiment, root, cfile_climatolog
     path_data = get_output_path(version, "climatology", project, var)
 
     
-    if check_existing_files(path_data, var, experiment, project, is_observation_project(project)):
-        return
+    #if check_existing_files(path_data, var, experiment, project, is_observation_project(project)):
+        #return
     
     logger.info(f"Producing climatology for {project}/{var}/{experiment}")
     
-    # Use TEMPLATE instead of project-specific
-    cfile_climatology = f"refconfiguration-remote_TEMPLATE_climatology.yml"
-    
-    # Standard climatology
+        # Standard climatology
     product = Product_Config(
         project, var, 
-        cfile_in=root + cfile_climatology, 
-        jobfile_in=root + jobfile,
+        cfile_in=cfile_climatology, 
+        jobfile_in=jobfile,
         main_proj_experiment=experiment,
         type="climatology",
         input_folder=input_folder,
@@ -311,8 +321,8 @@ def produce_climatology_product(project, var, experiment, root, cfile_climatolog
         logger.info(f"Producing extreme climatology for {project}/{var}/{experiment}")
         product_extreme = Product_Config(
             project, var, 
-            cfile_in=root + cfile_climatology, 
-            jobfile_in=root + jobfile,
+            cfile_in=cfile_climatology, 
+            jobfile_in=jobfile,
             main_proj_experiment=experiment,
             type="climatology",
             input_folder=input_folder,
@@ -338,13 +348,10 @@ def produce_trends_product(project, var, experiment, root, cfile_trends,
     
     logger.info(f"Producing trends for {project}/{var}/{experiment}")
     
-    # Use TEMPLATE instead of project-specific
-    cfile_trends = f"refconfiguration-remote_TEMPLATE_trends.yml"
-    
     product = Product_Config(
         project, var, 
-        cfile_in=root + cfile_trends, 
-        jobfile_in=root + jobfile,
+        cfile_in=cfile_trends, 
+        jobfile_in=jobfile,
         main_proj_experiment=experiment,
         type="trends"
     )
@@ -364,14 +371,11 @@ def produce_temporal_series_product(project, var, experiment, set_name,
         return
     
     logger.info(f"Producing temporal series for {project}/{var}/{experiment}/{set_name}")
-    
-    # Use TEMPLATE instead of project-specific
-    cfile_timeseries = f"refconfiguration-remote_TEMPLATE_temporal_series.yml"
-    
+        
     product = Product_Config(
         project, var, 
-        cfile_in=root + cfile_timeseries, 
-        jobfile_in=root + jobfile,
+        cfile_in=cfile_timeseries, 
+        jobfile_in=jobfile,
         main_proj_experiment=experiment,
         type="temporal_series",
         set=set_name,
@@ -383,7 +387,7 @@ def produce_temporal_series_product(project, var, experiment, set_name,
 
 # Main execution
 if __name__ == "__main__":
-    version = "extremes"
+    version = "dry"
 
     # Get version configuration
     version_config = get_version_config(version)
@@ -404,13 +408,13 @@ if __name__ == "__main__":
         elif "URB" in project:
             list_set = ["cities-urban"]
         
-        # Use TEMPLATE files instead of project-specific
-        cfile_climatology = f"refconfiguration-remote_TEMPLATE_climatology.yml"
-        cfile_timeseries = f"refconfiguration-remote_TEMPLATE_temporal_series.yml"
-        cfile_trends = f"refconfiguration-remote_TEMPLATE_trends.yml"
-
+        # Use TEMPLATE files from template_files directory
+        cfile_climatology = os.path.join(TEMPLATE_DIR, "refconfiguration-remote_TEMPLATE_climatology.yml")
+        cfile_timeseries = os.path.join(TEMPLATE_DIR, "refconfiguration-remote_TEMPLATE_temporal_series.yml")
+        cfile_trends = os.path.join(TEMPLATE_DIR, "refconfiguration-remote_TEMPLATE_trends.yml")
+        jobfile = os.path.join(TEMPLATE_DIR, "refJob_products_TEMPLATE.job")
+        
         root = f"/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/{project}/"
-        jobfile = "refJob_products_template.job"
 
         experiment_list = get_project_experiments(project)
         list_index = get_variables_for_version(project, version)

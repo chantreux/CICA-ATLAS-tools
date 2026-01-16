@@ -11,21 +11,19 @@ This module contains all variable-specific parameters including:
 Compatible with workflow/generation_scripts/ structure for future unification.
 """
 
-import sys
-import os
+
 from ruamel.yaml import YAML
 
-# Add parent directory to path to import load_parameters
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import load_parameters
+from .projects import PROJECTION_PROJECTS
+from .variables_workflow import index_only, ANNUAL_ONLY_VARS, get_project_variables
 
-# Variables that use relative anomaly instead of absolute
-# (used in config['products'][product_key]['magnitudes'])
+
 RELATIVE_ANOMALY_VARS = [
     "pr", "rx1day", "rx5day", "huss", "sfcwind", "evspsbl",
     "mrsos", "mrro", "rsds", "rlds", "tr", "r01mm", "r10mm",
     "r20mm", "sdii", "pethg"
 ]
+
 
 
 def get_anomaly_dict(variable: str, project: str) -> dict:
@@ -52,7 +50,7 @@ def get_anomaly_dict(variable: str, project: str) -> dict:
         - relanom_consensus: True/False (consensus for projections only)
     """
     # Remove suffixes like 'bals' or 'baisimip'
-    var_base = load_parameters.index_only(variable)
+    var_base = index_only(variable)
     
     result = {}
     
@@ -75,7 +73,7 @@ def get_anomaly_dict(variable: str, project: str) -> dict:
         result["relanom_consensus"] = False
     
     # Deactivate consensus for observation datasets
-    if project not in load_parameters.proj_datasets():
+    if project not in PROJECTION_PROJECTS:
         result["anom_consensus"] = False
         result["relanom_consensus"] = False
     
@@ -114,7 +112,7 @@ def get_time_aggregation(variable: str) -> str:
     yaml = YAML()
     
     # Remove suffixes like 'bals', 'baisimip', 'fullperiod' to get base variable
-    var_base = load_parameters.index_only(variable)
+    var_base = index_only(variable)
     
     # Also remove 'fullperiod' suffix
     if "fullperiod" in var_base:
@@ -124,10 +122,10 @@ def get_time_aggregation(variable: str) -> str:
     if "reference" in var_base:
         var_base = var_base.replace("reference", "")
     
-    # Try to load from file, fall back to hardcoded mapping if file doesn't exist
-
+    # Load aggregation functions from YAML file
     with open(AGG_FUNCTIONS_FILE) as f:
         agg_dict = yaml.load(f)
+    
     # Check both full variable name and base variable name
     if var_base in agg_dict.get("mean", []) or variable in agg_dict.get("mean", []):
         return "mean"
@@ -138,15 +136,13 @@ def get_time_aggregation(variable: str) -> str:
     elif var_base in agg_dict.get("sum", []) or variable in agg_dict.get("sum", []):
         return "sum"
     else:
-        raise ValueError(f"Variable {variable} (base: {var_base}) not found in aggregation file {AGG_FUNCTIONS_FILE}")
+        raise ValueError(
+            f"Variable {variable} (base: {var_base}) not found in "
+            f"aggregation file {AGG_FUNCTIONS_FILE}"
+        )
 
-
-# =============================================================================
-# PERIOD AGGREGATION
-# =============================================================================
 
 # Period aggregation for extreme variables
-# (used in config['products'][product_key]['period_aggregation_stat'])
 EXTREME_PERIOD_AGGREGATION = {
     "tnn": "one_in_20_year_event_min",
     # All other extreme variables use max
@@ -172,6 +168,8 @@ def get_period_aggregation(variable: str, extreme: bool) -> str:
     str
         Period aggregation statistic
     """
+    if variable in SPEI_DERIVED_VARS:
+        return "mean_with_time_filter"
     if not extreme:
         return "mean"
     else:
@@ -184,13 +182,6 @@ def get_period_aggregation(variable: str, extreme: bool) -> str:
 # =============================================================================
 # TIME FILTERS
 # =============================================================================
-
-# Variables that only support annual time filter
-# (used in config['products'][product_key]['time_filters'])
-ANNUAL_ONLY_VARS = [
-    "cd", "hd", "cdd", "cdbals", "hdbals",
-    "cdbaisimip", "hdbaisimip", "cddbaisimip"
-]
 
 
 def get_time_filters_variable(variable: str) -> dict:
@@ -256,8 +247,12 @@ LAND_ONLY_VARS = [
 ]
 
 # Ocean-only variables
-OCEAN_ONLY_VARS = [
-    "sst", "siconc"
+OCEAN_ONLY_VARS = ["sst", "siconc"]
+
+# SPEI/SPI derived categorical variables
+SPEI_DERIVED_VARS = [
+    "spei6extremedry", "spei6severedry", "spei6extremewet", "spei6severewet",
+    "spi6extremedry", "spi6severedry", "spi6extremewet", "spi6severewet"
 ]
 
 
@@ -265,61 +260,82 @@ OCEAN_ONLY_VARS = [
 # VERSION-SPECIFIC VARIABLE CONFIGURATIONS
 # =============================================================================
 
-# Version-specific variable configurations
 VERSION_VARIABLES = {
     "v2": {
-        # Default: use all project variables
-        "default": "all"
+        "default": "all"  # Use all project variables
     },
+    
     "v1": {
         "default": "specific_v1_list"  # Define specific list if needed
     },
+    
     "rural": {
-        "CORDEX-EUR-11-RUR": ["t", "pr", "tx", "tn", "txx", "tnn", "fd", "tr",
-                              "dtr", "rx1day", "rx5day", "r01mm", "r10mm",
-                              "r20mm", "sdii", "cdd", "cd", "hd", "tx35",
-                              "tx40", "rsds", "rlds", "sfcwind"]
+        "CORDEX-EUR-11-RUR": [
+            "t", "pr", "tx", "tn", "txx", "tnn", "fd", "tr", "dtr",
+            "rx1day", "rx5day", "r01mm", "r10mm", "r20mm", "sdii",
+            "cdd", "cd", "hd", "tx35", "tx40", "rsds", "rlds", "sfcwind"
+        ]
     },
+    
     "urban": {
-        "CORDEX-EUR-11-URB": ["t", "pr", "tx", "tn", "txx", "tnn", "fd", "tr",
-                              "dtr", "rx1day", "rx5day", "r01mm", "r10mm",
-                              "r20mm", "sdii", "cdd", "cd", "hd", "tx35",
-                              "tx40", "rsds", "rlds", "sfcwind"]
+        "CORDEX-EUR-11-URB": [
+            "t", "pr", "tx", "tn", "txx", "tnn", "fd", "tr", "dtr",
+            "rx1day", "rx5day", "r01mm", "r10mm", "r20mm", "sdii",
+            "cdd", "cd", "hd", "tx35", "tx40", "rsds", "rlds", "sfcwind"
+        ]
     },
+    
     "all": {
         "default": "all"
     },
+    
     "megacities": {
         "default": "all"
     },
+    
     "v23": {
         "BERKELEY": "all",
-        "CERRA": ["cdd", "evspsbl", "pethg", "pr", "prsn", "r01mm",
-                  "r10mm", "r20mm", "rx1day", "rx5day", "rlds", "rsds",
-                  "sdii", "spei6", "spi6"],
+        "CERRA": [
+            "cdd", "evspsbl", "pethg", "pr", "prsn", "r01mm",
+            "r10mm", "r20mm", "rx1day", "rx5day", "rlds", "rsds",
+            "sdii", "spei6", "spi6"
+        ],
         "CMIP5": ["pethg"],
         "CMIP6": ["pethg"],
         "E-OBS": ["pethg"],
         "CORDEX-CORE": ["hd", "pethg"],
-        "CORDEX-EUR-11": ["cddbaisimip", "fdbals", "cdbals", "hdbals",
-                          "txbals", "tnbals", "tbals", "tx35bals", "tx40bals",
-                          "cdbaisimip", "hdbaisimip", "pethg", "spei6", "spi6",
-                          "clt", "evspsbl", "sfcwind"],
+        "CORDEX-EUR-11": [
+            "cddbaisimip", "fdbals", "cdbals", "hdbals",
+            "txbals", "tnbals", "tbals", "tx35bals", "tx40bals",
+            "cdbaisimip", "hdbaisimip", "pethg", "spei6", "spi6",
+            "clt", "evspsbl", "sfcwind"
+        ],
         "ERA5": "all",
         "ERA5-Land": "all"
     },
+    
     "ERA5-Land_correction": {
-        "ERA5-Land": ["t", "tx35", "tx40", "tx", "tn", "tnn", "txx",
-                      "tr", "dtr", "fd", "hd", "cd", "pethg", "spei6"]
+        "ERA5-Land": [
+            "t", "tx35", "tx40", "tx", "tn", "tnn", "txx",
+            "tr", "dtr", "fd", "hd", "cd", "pethg", "spei6"
+        ]
     },
+    
     "cmip6poland": {
-        "CMIP6": ["t", "pr", "tx", "tn", "txx", "tnn", "fd", "tr", "dtr",
-                  "rx1day", "rx5day", "r01mm", "r10mm", "r20mm", "sdii",
-                  "cdd", "cd", "hd", "tx35", "tx40", "rsds", "rlds",
-                  "sfcwind", "pethg", "spei6", "spi6"]
+        "CMIP6": [
+            "t", "pr", "tx", "tn", "txx", "tnn", "fd", "tr", "dtr",
+            "rx1day", "rx5day", "r01mm", "r10mm", "r20mm", "sdii",
+            "cdd", "cd", "hd", "tx35", "tx40", "rsds", "rlds",
+            "sfcwind", "pethg", "spei6", "spi6"
+        ]
     },
+    
     "extremes": {
         "default": ["txx", "tnn", "rx1day", "rx5day", "cdd"]
+    },
+    
+    "dry": {
+        "default": SPEI_DERIVED_VARS
     }
 }
 
@@ -345,7 +361,6 @@ def get_variables_for_version(project: str, version: str = "v2") -> list:
     ValueError
         If version is unknown or dataset object required but not available
     """
-    dataset = load_parameters.Dataset(project, "")
     
     if version not in VERSION_VARIABLES:
         raise ValueError(f"Unknown version: {version}")
@@ -360,11 +375,18 @@ def get_variables_for_version(project: str, version: str = "v2") -> list:
     
     # Get variable list
     if var_config == "all":
-        var_list = dataset.check_vars_proj()
+        var_list = get_project_variables(project, include_bias_adjustment=True)
+
     else:
         var_list = var_config.copy()
+
+    for var in VAR_NOT_CALCULATED:
+        if var in var_list:
+            var_list.remove(var)
     
     # Remove variables not to be calculated
     var_list = [v for v in var_list if v not in VAR_NOT_CALCULATED]
     
     return var_list
+
+

@@ -198,7 +198,7 @@ PROJECT_GRIDS = {
     "CERRA": {"resolution": 0.065, "reference_grid": "land_sea_mask_grd011.nc"},
     "CERRARUR": {"resolution": 0.065, "reference_grid": "land_sea_mask_grd011.nc"},
     "CERRAURB": {"resolution": 0.065, "reference_grid": "land_sea_mask_grd011.nc"},
-    "CPC": {"resolution": 1, "reference_grid": "RAW"},
+    "CPC": {"resolution": 0.5, "reference_grid": "RAW"},
     "BERKELEY": {"resolution": 1, "reference_grid": "RAW"},
     "SSTSAT": {"resolution": 0.05, "reference_grid": "RAW"},
 }

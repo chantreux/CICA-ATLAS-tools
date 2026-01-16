@@ -61,7 +61,7 @@ from .projects_products import (
 # =============================================================================
 # IMPORTS FROM variables.py
 # =============================================================================
-from .variables import (
+from .variables_products import (
     # Anomaly configuration
     RELATIVE_ANOMALY_VARS,
     get_anomaly_dict,
