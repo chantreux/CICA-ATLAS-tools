@@ -1,5 +1,5 @@
 import load_parameters
-from variables import temporal_agg, SUPPORTED_STEPS,MONTHLY_INPUT_INDEXES
+from variables import temporal_agg, MONTHLY_INPUT_INDEXES
 from cluster import get_cluster_config,SUPPORTED_CLUSTERS
 from aliases import PROJECT_STEPS,SUPPORTED_PROJECTS, PROJECT_ALIASES
 
@@ -17,6 +17,30 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+
+SUPPORTED_STEPS = [
+    "homogenization",
+    "interpolation",
+    "biasadjustment",
+    "indices",
+    "range-skewness",
+    "tasmaxba-tasminba",
+    "all",
+]
+
+
+# Construct final PROJECT_STEP_VARIABLES dynamically
+PROJECT_STEP_VARIABLES = {}
+
+for proj, steps in PROJECT_STEPS.items():
+    PROJECT_STEP_VARIABLES[proj] = {}
+    for step in steps:
+        if step == "interpolation":
+            # For interpolation, use the same variables as homogenization
+            PROJECT_STEP_VARIABLES[proj][step] = BASE_PROJECT_VARIABLES[proj]["homogenization"]
+        else:
+            PROJECT_STEP_VARIABLES[proj][step] = BASE_PROJECT_VARIABLES[proj][step]
 
 
 def load_template(project,step):

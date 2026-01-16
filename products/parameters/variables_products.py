@@ -15,7 +15,7 @@ Compatible with workflow/generation_scripts/ structure for future unification.
 from ruamel.yaml import YAML
 
 from .projects import PROJECTION_PROJECTS
-from .variables_workflow import index_only, ANNUAL_ONLY_VARS, get_project_variables
+from .variables_workflow import index_only, ANNUAL_ONLY_VARS
 
 
 RELATIVE_ANOMALY_VARS = [

@@ -59,11 +59,37 @@ from .projects_products import (
 )
 
 # =============================================================================
-# IMPORTS FROM variables.py
+# IMPORTS FROM variables_workflow.py
+# =============================================================================
+from .variables_workflow import (
+    # Helper functions
+    index_only,
+    normalize_variable_name,
+    
+    # Variable name aliases
+    VAR_NAME_ALIASES,
+    
+    # Special variable categories
+    ANNUAL_ONLY_VARS,
+    BIASADJUSTMENT_VARS,
+    REFERENCE_VARS,
+    
+    # Combined variable lists
+    ALL_VAR,
+    NUM_ALL_VAR,
+    ALL_VAR_PROJECT,
+    
+    # Functions
+    get_project_variables,
+)
+
+# =============================================================================
+# IMPORTS FROM variables_products.py
 # =============================================================================
 from .variables_products import (
     # Anomaly configuration
     RELATIVE_ANOMALY_VARS,
+    SPEI_DERIVED_VARS,
     get_anomaly_dict,
     
     # Time aggregation
@@ -75,7 +101,6 @@ from .variables_products import (
     get_period_aggregation,
     
     # Time filters
-    ANNUAL_ONLY_VARS,
     get_time_filters_variable,
     
     # Variable lists
@@ -95,9 +120,9 @@ from .regions import (
 )
 
 # =============================================================================
-# IMPORTS FROM cluster_resources.py
+# IMPORTS FROM cluster_resources_products.py
 # =============================================================================
-from .cluster_resources import (
+from .cluster_resources_products import (
     PROJECT_RESOURCES,
     PROJECT_CHUNKS,
     get_cluster_resources,
@@ -160,7 +185,7 @@ __all__ = [
     "get_region_mask",
     
     # -------------------------------------------------------------------------
-    # From variables.py - Variable configuration
+    # From variables_products.py - Variable configuration
     # -------------------------------------------------------------------------
     "RELATIVE_ANOMALY_VARS",
     "get_anomaly_dict",
@@ -183,7 +208,7 @@ __all__ = [
     "AR6_REGIONS",
     
     # -------------------------------------------------------------------------
-    # From cluster_resources.py - Cluster resource configuration
+    # From cluster_resources_products.py - Cluster resource configuration
     # -------------------------------------------------------------------------
     "PROJECT_RESOURCES",
     "PROJECT_CHUNKS",

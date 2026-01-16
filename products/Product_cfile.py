@@ -39,7 +39,7 @@ from parameters import (
     PROJECT_ROBUSTNESS,
     PROJECT_TRENDS,
     
-    # Variable functions (from variables.py)
+    # Variable functions (from variables_products.py)
     get_variables_for_version,
     get_anomaly_dict,
     get_time_aggregation,
@@ -49,7 +49,7 @@ from parameters import (
     # Cluster resources (from cluster_resources.py)
     get_cluster_resources,
     get_chunk_config,
-    # Variable parameters (from variables.py)
+    # Variable parameters (from variables_products.py)
     VERSION_VARIABLES
 )
 

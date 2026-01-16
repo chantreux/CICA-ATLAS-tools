@@ -103,6 +103,11 @@ PROJECT_ROOTS = {
     "SSTSAT": "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/SSTSAT/",
 }
 
+# Root path overrides for aliases (if alias needs different root than canonical project)
+PROJECT_ROOT_ALIASES = {
+    # Example: "E-OBSv26": "/path/to/specific/version/",
+}
+
 # Experiments per project (used in config['data'][0]['scenario'])
 PROJECT_EXPERIMENTS = {
     "CMIP6": ["historical", "ssp119", "ssp126", "ssp245", "ssp370", "ssp585"],
@@ -289,7 +294,11 @@ def get_project_root(project: str) -> str:
     str
         Root directory path
     """
-    # Resolve alias if needed
+    # Check if alias has specific root override
+    if project in PROJECT_ROOT_ALIASES:
+        return PROJECT_ROOT_ALIASES[project]
+    
+    # Otherwise resolve alias and get canonical root
     canonical = PROJECT_ALIASES.get(project, project)
     return PROJECT_ROOTS.get(canonical, "None")
 
@@ -424,4 +433,45 @@ def get_members_subset(project: str) -> list:
     return PROJECT_MEMBERS_SUBSET.get(canonical, None)
 
 
+def validate_project_constants():
+    """
+    Validate that all supported projects are defined in all project constants.
+    
+    Raises
+    ------
+    ValueError
+        If any project is missing from required dictionaries
+        
+    Returns
+    -------
+    bool
+        True if all projects are properly defined
+    """
+    dicts_to_check = {
+        "PROJECT_ROOTS": PROJECT_ROOTS,
+        "PROJECT_EXPERIMENTS": PROJECT_EXPERIMENTS,
+        "PROJECT_PERIODS": PROJECT_PERIODS,
+        "PROJECT_DOMAINS": PROJECT_DOMAINS,
+        "PROJECT_IDS": PROJECT_IDS,
+        "PROJECT_GRIDS": PROJECT_GRIDS,
+        "PROJECT_DATA_TYPE": PROJECT_DATA_TYPE,
+    }
+
+    missing = {}
+    for project in CANONICAL_PROJECTS:  # Check canonical projects only
+        for dict_name, dict_obj in dicts_to_check.items():
+            if project not in dict_obj:
+                missing.setdefault(project, []).append(dict_name)
+
+    if missing:
+        error_msg = "Missing project definitions detected:\n"
+        for proj, dicts in missing.items():
+            error_msg += f" - {proj} missing in: {', '.join(dicts)}\n"
+        raise ValueError(error_msg)
+
+    return True
+
+# Example usage
+if __name__ == "__main__":
+    validate_project_constants()
 

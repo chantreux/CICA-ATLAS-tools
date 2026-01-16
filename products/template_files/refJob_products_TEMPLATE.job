@@ -16,6 +16,7 @@ project=project_replace
 data_type_product=data_type_replace
 type_product=product_type_replace
 set_product=set_replace
+source /nfs/home/gmeteo/chantreuxa/mambaforge/etc/profile.d/conda.sh
 source activate Products
 Date=$(date +'%Y%m%d%H%M%S')
 logfile=$RUNDIR/${project}_${index}_${experiment}_${set_product}_${Date}.log
