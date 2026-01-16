@@ -22,6 +22,7 @@ from .projects import (
     PROJECT_IDS,
     PROJECT_GRIDS,
     PROJECT_DATA_TYPE,
+    PROJECT_MEMBERS_SUBSET,
     
     # Helper functions from projects.py
     get_project_root,
@@ -31,6 +32,7 @@ from .projects import (
     get_project_periods,
     get_project_domains,
     get_data_type,
+    get_members_subset,
 )
 
 # =============================================================================
@@ -97,7 +99,9 @@ from .regions import (
 # =============================================================================
 from .cluster_resources import (
     PROJECT_RESOURCES,
+    PROJECT_CHUNKS,
     get_cluster_resources,
+    get_chunk_config,
 )
 
 # =============================================================================
@@ -119,6 +123,7 @@ __all__ = [
     "PROJECT_IDS",
     "PROJECT_GRIDS",
     "PROJECT_DATA_TYPE",
+    "PROJECT_MEMBERS_SUBSET",
     
     # -------------------------------------------------------------------------
     # From projects.py - Helper functions
@@ -130,6 +135,7 @@ __all__ = [
     "get_project_periods",
     "get_project_domains",
     "get_data_type",
+    "get_members_subset",
     
     # -------------------------------------------------------------------------
     # From projects_products.py - Generated dictionaries
@@ -180,5 +186,7 @@ __all__ = [
     # From cluster_resources.py - Cluster resource configuration
     # -------------------------------------------------------------------------
     "PROJECT_RESOURCES",
+    "PROJECT_CHUNKS",
     "get_cluster_resources",
+    "get_chunk_config",
 ]

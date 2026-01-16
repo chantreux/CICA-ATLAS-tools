@@ -1,18 +1,18 @@
 directories:
   input: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/datasets/CICAv2.0_refactored/compressed_v2/c3s-atlas-dataset/
-  temporary: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/c3s-atlas-dataset_v2_RUR/temporal_products/var_replace/main_replace/set_replace
-  output: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/c3s-atlas-dataset_v2_RUR/
-  validation: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/c3s-atlas-dataset_v2_RUR/validation/
-
+  temporary: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/c3s-atlas-dataset_v2_old_vars/temporal_products/var_replace/main_replace/set_replace
+  output: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/c3s-atlas-dataset_v2_old_vars/
+  validation: /lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/products/CICAv2/v20231017/c3s-atlas-dataset_v2_old_vars/validation/
 
 data:
 - type: data_type_replace
   project: project_replace
   spatial_mask: spatial_mask_replace
   scenario: scenario_replace
-  period: period_replace #1940-2022
+  period: period_replace
   variable:
   - var_replace
+  members_subset: None
   source: local_machine
 
 products:
@@ -27,16 +27,12 @@ products:
       anom: true
       relanom: relanom_replace
     periods: period_climatology_replace
-    baselines:
-      AR5: 1986-2005
-      AR6: 1995-2014
-      WMO2: 1981-2010
-      WMO3: 1991-2020
+    baselines: baselines_replace
     time_filters: time_filters_replace
     time_aggregation_stat: time_aggregation_replace
     period_aggregation_stat: period_aggregation_replace
     region_aggregation:
       mask_file: mask_replace
       set: set_replace
-    chunknum: 1
-    max_memory: 20
+      period_aggregation_stat: period_aggregation_replace
+    chunknum: 2

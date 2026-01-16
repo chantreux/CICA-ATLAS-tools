@@ -19,4 +19,23 @@ The products module provides utilities for:
 - **`Product_variables.py`** - Variable definitions and version mappings
 - **`load_parameters.py`** - Parameter loading and dataset configuration
 
+## Template Files
+
+The products module uses 3 universal template files that work dynamically for all projects:
+
+- **`refconfiguration-remote_TEMPLATE_climatology.yml`** - For climatology products
+- **`refconfiguration-remote_TEMPLATE_trends.yml`** - For trend analysis products  
+- **`refconfiguration-remote_TEMPLATE_temporal_series.yml`** - For temporal series products
+
+All project-specific configurations (chunking, members, masks, etc.) are handled dynamically through the parameters system in `products/parameters/`.
+
+### Adding Support for New Projects
+
+To add a new project:
+1. Add project configuration to `products/parameters/projects.py`
+2. Add chunk configuration to `products/parameters/cluster_resources.py`
+3. Add any project-specific logic to `products/parameters/projects_products.py`
+
+No need to create new template files!
+
 *Note: This module is under active development and subject to change.*

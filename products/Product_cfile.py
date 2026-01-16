@@ -26,6 +26,7 @@ from parameters import (
     is_observation_project,
     get_project_experiments,
     get_data_type,
+    get_members_subset,
     
     # Project-product functions (from projects_products.py)
     get_baseline_project,
@@ -48,6 +49,7 @@ from parameters import (
     
     # Cluster resources (from cluster_resources.py)
     get_cluster_resources,
+    get_chunk_config,
 )
 
 # Configure logging
@@ -74,9 +76,9 @@ class Product_Config:
         self.input_folder = input_folder
         self.output_folder = output_folder
         
-        # File paths
-        self.cfile_in = cfile_in or f"configuration-remote_{project}.yml"
-        self.jobfile_in = jobfile_in or f"configuration-remote_{project}.yml"
+        # File paths - use TEMPLATE instead of project-specific
+        self.cfile_in = cfile_in or f"refconfiguration-remote_TEMPLATE_{type}.yml"
+        self.jobfile_in = jobfile_in or f"refJob_products_TEMPLATE.job"
         self.cfile_out = self.file_output(self.cfile_in, variable, project)
         self.jobfile_out = self.file_output(self.jobfile_in, variable, project)
 
@@ -136,6 +138,8 @@ class Product_Config:
         anomaly = get_anomaly_dict(self.variable, self.project)
         scenarios_lines = get_scenario_lines_project_var(self.project, self.main_experiment, self.variable)
         spatial_mask = get_spatial_mask(self.project, self.variable)
+        chunk_config = get_chunk_config(self.project)
+        members = get_members_subset(self.project)
         
         # === UPDATE DIRECTORIES SECTION ===   
         config['directories']['input'] = self.input_folder
@@ -143,6 +147,10 @@ class Product_Config:
         config['directories']['temporary'] = f"{self.output_folder}/temporal_products/{self.project}/{self.variable}/{self.main_experiment}/{self.type}/{self.set}"
         if config['directories'].get('validation') is not None:
             config['directories']['validation'] = f"{self.output_folder}/validation/"
+
+        # === REMOVE NOTIFICATIONS IF PRESENT ===
+        if 'notifications' in config:
+            del config['notifications']
 
         # === UPDATE DATA SECTION ===
         if 'data' in config and isinstance(config['data'], list) and len(config['data']) > 0:
@@ -152,6 +160,12 @@ class Product_Config:
             data_config['period'] = get_period_experiments(self.project, self.variable, self.main_experiment)
             data_config['scenario'] = get_project_experiments(self.project)
             data_config['variable'] = [self.variable]
+            
+            # Set members_subset
+            if members is not None:
+                data_config['members_subset'] = members
+            elif 'members_subset' in data_config:
+                data_config['members_subset'] = None
             
             if spatial_mask is not None:
                 data_config['spatial_mask'] = spatial_mask
@@ -200,10 +214,17 @@ class Product_Config:
         product_config['period_aggregation_stat'] = period_aggregation
     
         # Update region aggregation for temporal series
-        if product_config['region_aggregation']:
+        if product_config.get('region_aggregation'):
             product_config['region_aggregation']['mask_file'] = get_region_mask(self.set) if self.type == "temporal_series" else None
             product_config['region_aggregation']['set'] = self.set
             product_config['region_aggregation']['period_aggregation_stat'] = period_aggregation
+        
+        # Update chunking configuration
+        if 'chunksize' in product_config:
+            product_config['chunksize']['lat'] = chunk_config['lat']
+            product_config['chunksize']['lon'] = chunk_config['lon']
+        if 'chunknum' in product_config:
+            product_config['chunknum'] = chunk_config['chunknum']
         
         return config
     
@@ -268,6 +289,9 @@ def produce_climatology_product(project, var, experiment, root, cfile_climatolog
     
     logger.info(f"Producing climatology for {project}/{var}/{experiment}")
     
+    # Use TEMPLATE instead of project-specific
+    cfile_climatology = f"refconfiguration-remote_TEMPLATE_climatology.yml"
+    
     # Standard climatology
     product = Product_Config(
         project, var, 
@@ -314,6 +338,9 @@ def produce_trends_product(project, var, experiment, root, cfile_trends,
     
     logger.info(f"Producing trends for {project}/{var}/{experiment}")
     
+    # Use TEMPLATE instead of project-specific
+    cfile_trends = f"refconfiguration-remote_TEMPLATE_trends.yml"
+    
     product = Product_Config(
         project, var, 
         cfile_in=root + cfile_trends, 
@@ -337,6 +364,9 @@ def produce_temporal_series_product(project, var, experiment, set_name,
         return
     
     logger.info(f"Producing temporal series for {project}/{var}/{experiment}/{set_name}")
+    
+    # Use TEMPLATE instead of project-specific
+    cfile_timeseries = f"refconfiguration-remote_TEMPLATE_temporal_series.yml"
     
     product = Product_Config(
         project, var, 
@@ -374,9 +404,10 @@ if __name__ == "__main__":
         elif "URB" in project:
             list_set = ["cities-urban"]
         
-        cfile_climatology = f"refconfiguration-remote_{project}_climatology.yml"
-        cfile_timeseries = f"refconfiguration-remote_{project}_temporal_series.yml"
-        cfile_trends = f"refconfiguration-remote_{project}_trends.yml"
+        # Use TEMPLATE files instead of project-specific
+        cfile_climatology = f"refconfiguration-remote_TEMPLATE_climatology.yml"
+        cfile_timeseries = f"refconfiguration-remote_TEMPLATE_temporal_series.yml"
+        cfile_trends = f"refconfiguration-remote_TEMPLATE_trends.yml"
 
         root = f"/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/{project}/"
         jobfile = "refJob_products_template.job"
