@@ -228,6 +228,44 @@ PROJECT_DATA_TYPE = {
     "SSTSAT": "observation",
 }
 
+# Members subset per project (used in config['data'][0]['members_subset'])
+PROJECT_MEMBERS_SUBSET = {
+    'CMIP5': [
+        "CCCma_CanESM2_r1i1p1",
+        "CCCma_CanESM2_r2i1p1",
+        "CNRM-CERFACS_CNRM-CM5_r1i1p1",
+        "ICHEC_EC-EARTH_r12i1p1",
+        "ICHEC_EC-EARTH_r14i1p1",
+        "IPSL_IPSL-CM5A-MR_r1i1p1",
+        "MOHC_HadGEM2-ES_r1i1p1",
+        "MOHC_HadGEM2-ES_r2i1p1",
+        "MPI-M_MPI-ESM-LR_r1i1p1",
+        "MPI-M_MPI-ESM-LR_r2i1p1",
+        "MPI-M_MPI-ESM-LR_r3i1p1",
+        "MPI-M_MPI-ESM-MR_r1i1p1",
+        "NCC_NorESM1-M_r1i1p1",
+        "BCC_bcc-csm1-1-m_r1i1p1",
+        "BCC_bcc-csm1-1_r1i1p1",
+        "CCCma_CanCM4_r1i1p1",
+        "CMCC_CMCC-CESM_r1i1p1",
+        "CMCC_CMCC-CMS_r1i1p1",
+        "CMCC_CMCC-CM_r1i1p1",
+        "CSIRO-BOM_ACCESS1-0_r1i1p1",
+        "CSIRO-BOM_ACCESS1-3_r1i1p1",
+        "CSIRO-QCCCE_CSIRO-Mk3-6-0_r1i1p1",
+        "LASG-CESS_FGOALS-g2_r1i1p1",
+        "MOHC_HadCM3_r1i1p1",
+        "MOHC_HadGEM2-CC_r1i1p1",
+        "NASA-GISS_GISS-E2-R_r6i1p1",
+        "NCAR_CCSM4_r1i1p1",
+        "NOAA GFDL_GFDL-CM3_r1i1p1",
+        "NOAA GFDL_GFDL-ESM2G_r1i1p1",
+        "NOAA GFDL_GFDL-ESM2M_r1i1p1",
+        "NSF-DOE-NCAR_CESM1-BGC_r1i1p1",
+        "NSF-DOE-NCAR_CESM1-CAM5_r1i1p1",
+    ]
+}
+
 
 
 
@@ -365,6 +403,25 @@ def get_data_type(project: str) -> str:
     canonical = PROJECT_ALIASES.get(project, project)
     return PROJECT_DATA_TYPE.get(canonical, "NOT DEFINED")
 
+
+def get_members_subset(project: str) -> list:
+    """
+    Get members subset for a project.
+    
+    Used in config['data'][0]['members_subset'].
+    
+    Parameters
+    ----------
+    project : str
+        Project name
+        
+    Returns
+    -------
+    list or None
+        List of member identifiers, or None if not defined
+    """
+    canonical = PROJECT_ALIASES.get(project, project)
+    return PROJECT_MEMBERS_SUBSET.get(canonical, None)
 
 
 

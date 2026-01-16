@@ -129,6 +129,25 @@ PROJECT_RESOURCES = {
 }
 
 # =============================================================================
+# CHUNK CONFIGURATION BY PROJECT
+# =============================================================================
+
+PROJECT_CHUNKS = {
+    'ORAS5': {'lat': 90, 'lon': 180, 'chunknum': 8},
+    'CORDEX-EUR-11': {'lat': 30, 'lon': 60, 'chunknum': 16},
+    'CERRA': {'lat': 300, 'lon': 600, 'chunknum': 8},
+    'E-OBS': {'lat': 30, 'lon': 60, 'chunknum': 16},
+    'ERA5': {'lat': 70, 'lon': 140, 'chunknum': 3},
+    'ERA5-Land': {'lat': 70, 'lon': 140, 'chunknum': 3},
+    'CORDEX-CORE': {'lat': 70, 'lon': 140, 'chunknum': 3},
+    'CMIP5': {'lat': 70, 'lon': 140, 'chunknum': 3},
+    'CMIP6': {'lat': 30, 'lon': 60, 'chunknum': 3},
+    'CPC': {'lat': 70, 'lon': 140, 'chunknum': 3},
+    'BERKELEY': {'lat': 300, 'lon': 600, 'chunknum': 8},
+    'SSTSAT': {'lat': 300, 'lon': 600, 'chunknum': 8},
+}
+
+# =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
@@ -162,3 +181,26 @@ def get_cluster_resources(project: str, product_type: str = None) -> dict:
     
     # Return a copy to prevent accidental modification
     return PROJECT_RESOURCES[project].copy()
+
+
+def get_chunk_config(project: str) -> dict:
+    """
+    Get chunk configuration for a project.
+    
+    Args:
+        project: Project name (e.g., 'ORAS5', 'CMIP6', 'E-OBS')
+    
+    Returns:
+        Dictionary with keys: 'lat', 'lon', 'chunknum'
+        Returns default configuration if project not found
+    
+    Examples:
+        >>> get_chunk_config('ORAS5')
+        {'lat': 90, 'lon': 180, 'chunknum': 8}
+        
+        >>> get_chunk_config('CMIP6')
+        {'lat': 30, 'lon': 60, 'chunknum': 3}
+    """
+    # Default configuration if project not found
+    default = {'lat': 70, 'lon': 140, 'chunknum': 3}
+    return PROJECT_CHUNKS.get(project, default)
