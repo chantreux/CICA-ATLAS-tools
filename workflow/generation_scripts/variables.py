@@ -1,14 +1,4 @@
 
-
-SUPPORTED_STEPS = [
-    "homogenization",
-    "interpolation",
-    "biasadjustment",
-    "indices",
-    "range-skewness",
-    "tasmaxba-tasminba",
-    "all",
-]
 # In variables.py or a similar config file
 TEMPORAL_AGG_MAPPING = {
     "cddcica": ["YS"],
@@ -100,15 +90,5 @@ BASE_PROJECT_VARIABLES = {
     },
 }
 
-# Construct final PROJECT_STEP_VARIABLES dynamically
-PROJECT_STEP_VARIABLES = {}
 
-for proj, steps in PROJECT_STEPS.items():
-    PROJECT_STEP_VARIABLES[proj] = {}
-    for step in steps:
-        if step == "interpolation":
-            # For interpolation, use the same variables as homogenization
-            PROJECT_STEP_VARIABLES[proj][step] = BASE_PROJECT_VARIABLES[proj]["homogenization"]
-        else:
-            PROJECT_STEP_VARIABLES[proj][step] = BASE_PROJECT_VARIABLES[proj][step]
 

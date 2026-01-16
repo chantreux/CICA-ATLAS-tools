@@ -1,6 +1,6 @@
 import load_parameters
-from variables import temporal_agg, MONTHLY_INPUT_INDEXES
-from cluster import get_cluster_config,SUPPORTED_CLUSTERS
+from variables import temporal_agg, MONTHLY_INPUT_INDEXES,BASE_PROJECT_VARIABLES
+from cluster import get_cluster_config, get_job_parameters, SUPPORTED_CLUSTERS
 from aliases import PROJECT_STEPS,SUPPORTED_PROJECTS, PROJECT_ALIASES
 
 import yaml
@@ -89,30 +89,10 @@ def replace_string_in_file(input_file, output_file, replacements):
     logger.info("Job written to %s", output_file)
 
 
-def job_parameters(step,experiment):
-    """Get job parameters for a given step."""
-    if step == "homogenization":
-        return {"procs": "1", "time_limit": "72:00:00", "ram": "20G"}
-    if step == "biasadjustment":
-        if "historical" in experiment:
-            return {"procs": "4", "time_limit": "72:00:00", "ram": "5G"}
-        elif "rcp" in experiment:
-            return {"procs": "4", "time_limit": "72:00:00", "ram": "10G"}
-
-    if step in ["indices","range-skewness","tasmaxba-tasminba"]:
-        if step in  ["range-skewness","tasmaxba-tasminba"]:
-            if "historical" in experiment:
-                return {"procs": "1", "time_limit": "72:00:00", "ram": "30G"}
-            elif "rcp" in experiment:
-                return {"procs": "1", "time_limit": "72:00:00", "ram": "50G"}
-        else:
-            return {"procs": "1", "time_limit": "72:00:00", "ram": "30G"}
-    return {}
-
 def write_jfile(project,experiment,varout,domain,model="None",step="homogenization", cluster_cfg=None):
     """Write a job file."""
 
-    params = job_parameters(step,experiment)
+    params = get_job_parameters(step, experiment)
     jfile_in= root_generation() / "config_files_template" / f"Job_template_{cluster_cfg.name}.sh"
     jfile_out=load_jfile_path(step,project,domain,varout,experiment,model).resolve()
     os.makedirs(os.path.dirname(jfile_out), exist_ok=True)

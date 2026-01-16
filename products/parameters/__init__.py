@@ -106,8 +106,6 @@ from .variables_products import (
     # Variable lists
     VAR_NOT_CALCULATED,
     URBAN_VARS,
-    LAND_ONLY_VARS,
-    OCEAN_ONLY_VARS,
     VERSION_VARIABLES,
     get_variables_for_version,
 )

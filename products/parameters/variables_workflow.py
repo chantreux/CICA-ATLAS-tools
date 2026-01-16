@@ -10,34 +10,6 @@ from .projects import PROJECTION_PROJECTS
 
 
 # =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def index_only(index):
-    """Extract base variable name by removing bias adjustment suffix."""
-    if "ba" in index:
-        index = index.split("ba")[0]
-    return index
-
-
-def normalize_variable_name(var_name):
-    """
-    Normalize variable name to standard format.
-    
-    Parameters
-    ----------
-    var_name : str
-        Variable name (may use alternative naming)
-    
-    Returns
-    -------
-    str
-        Normalized variable name
-    """
-    return VAR_NAME_ALIASES.get(var_name, var_name)
-
-
-# =============================================================================
 # VARIABLE NAME ALIASES
 # =============================================================================
 
@@ -375,3 +347,26 @@ def temporal_agg(var: str):
     if agg is None:
         raise ValueError(f"Variable '{var}' not found in temporal aggregation mapping.")
     return agg
+
+def index_only(index):
+    """Extract base variable name by removing bias adjustment suffix."""
+    if "ba" in index:
+        index = index.split("ba")[0]
+    return index
+
+
+def normalize_variable_name(var_name):
+    """
+    Normalize variable name to standard format.
+    
+    Parameters
+    ----------
+    var_name : str
+        Variable name (may use alternative naming)
+    
+    Returns
+    -------
+    str
+        Normalized variable name
+    """
+    return VAR_NAME_ALIASES.get(var_name, var_name)

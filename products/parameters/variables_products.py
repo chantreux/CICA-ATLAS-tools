@@ -11,73 +11,22 @@ This module contains all variable-specific parameters including:
 Compatible with workflow/generation_scripts/ structure for future unification.
 """
 
-
 from ruamel.yaml import YAML
 
 from .projects import PROJECTION_PROJECTS
-from .variables_workflow import index_only, ANNUAL_ONLY_VARS
+from .variables_workflow import index_only, ANNUAL_ONLY_VARS, get_project_variables
 
 
+# =============================================================================
+# ANOMALY CONFIGURATION
+# =============================================================================
+
+# Variables that use relative anomaly instead of absolute
 RELATIVE_ANOMALY_VARS = [
     "pr", "rx1day", "rx5day", "huss", "sfcwind", "evspsbl",
     "mrsos", "mrro", "rsds", "rlds", "tr", "r01mm", "r10mm",
     "r20mm", "sdii", "pethg"
 ]
-
-
-
-def get_anomaly_dict(variable: str, project: str) -> dict:
-    """
-    Get anomaly configuration for a variable and project.
-    
-    Used in config['products'][product_key]['magnitudes'].
-    
-    Parameters
-    ----------
-    variable : str
-        Variable name
-    project : str
-        Project name
-        
-    Returns
-    -------
-    dict
-        Dictionary with anomaly configuration:
-        - anomaly: "relative" or "absolute"
-        - anom: True (always calculate absolute anomaly)
-        - anom_consensus: True/False (consensus for projections only)
-        - relanom: True/False (calculate relative anomaly)
-        - relanom_consensus: True/False (consensus for projections only)
-    """
-    # Remove suffixes like 'bals' or 'baisimip'
-    var_base = index_only(variable)
-    
-    result = {}
-    
-    # Determine anomaly type
-    if var_base in RELATIVE_ANOMALY_VARS:
-        result["anomaly"] = "relative"
-    else:
-        result["anomaly"] = "absolute"
-    
-    # Always calculate absolute anomaly
-    result["anom"] = True
-    result["anom_consensus"] = True
-    
-    # Activate relative anomaly if needed
-    if result["anomaly"] == "relative":
-        result["relanom"] = True
-        result["relanom_consensus"] = True
-    else:
-        result["relanom"] = False
-        result["relanom_consensus"] = False
-    
-    # Deactivate consensus for observation datasets
-    if project not in PROJECTION_PROJECTS:
-        result["anom_consensus"] = False
-        result["relanom_consensus"] = False
-    
-    return result
 
 
 # =============================================================================
@@ -88,140 +37,15 @@ def get_anomaly_dict(variable: str, project: str) -> dict:
 AGG_FUNCTIONS_FILE = "/lustre/gmeteo/WORK/chantreuxa/cica/Products/products/resources/resources/metadata/agg-functions.yaml"
 
 
-def get_time_aggregation(variable: str) -> str:
-    """
-    Get time aggregation function for a variable.
-    
-    Used in config['products'][product_key]['time_aggregation_stat'].
-    
-    Parameters
-    ----------
-    variable : str
-        Variable name
-        
-    Returns
-    -------
-    str
-        Aggregation function: "mean", "min", "max", or "sum"
-        
-    Raises
-    ------
-    ValueError
-        If variable not found in aggregation file
-    """
-    yaml = YAML()
-    
-    # Remove suffixes like 'bals', 'baisimip', 'fullperiod' to get base variable
-    var_base = index_only(variable)
-    
-    # Also remove 'fullperiod' suffix
-    if "fullperiod" in var_base:
-        var_base = var_base.replace("fullperiod", "")
-    
-    # Also remove 'reference' suffix
-    if "reference" in var_base:
-        var_base = var_base.replace("reference", "")
-    
-    # Load aggregation functions from YAML file
-    with open(AGG_FUNCTIONS_FILE) as f:
-        agg_dict = yaml.load(f)
-    
-    # Check both full variable name and base variable name
-    if var_base in agg_dict.get("mean", []) or variable in agg_dict.get("mean", []):
-        return "mean"
-    elif var_base in agg_dict.get("min", []) or variable in agg_dict.get("min", []):
-        return "min"
-    elif var_base in agg_dict.get("max", []) or variable in agg_dict.get("max", []):
-        return "max"
-    elif var_base in agg_dict.get("sum", []) or variable in agg_dict.get("sum", []):
-        return "sum"
-    else:
-        raise ValueError(
-            f"Variable {variable} (base: {var_base}) not found in "
-            f"aggregation file {AGG_FUNCTIONS_FILE}"
-        )
-
+# =============================================================================
+# PERIOD AGGREGATION
+# =============================================================================
 
 # Period aggregation for extreme variables
 EXTREME_PERIOD_AGGREGATION = {
     "tnn": "one_in_20_year_event_min",
-    # All other extreme variables use max
-    "default": "one_in_20_year_event_max"
+    "default": "one_in_20_year_event_max"  # All other extreme variables use max
 }
-
-
-def get_period_aggregation(variable: str, extreme: bool) -> str:
-    """
-    Get period aggregation statistic for a variable.
-    
-    Used in config['products'][product_key]['period_aggregation_stat'].
-    
-    Parameters
-    ----------
-    variable : str
-        Variable name
-    extreme : bool
-        Whether this is an extreme product
-        
-    Returns
-    -------
-    str
-        Period aggregation statistic
-    """
-    if variable in SPEI_DERIVED_VARS:
-        return "mean_with_time_filter"
-    if not extreme:
-        return "mean"
-    else:
-        if variable == "tnn":
-            return EXTREME_PERIOD_AGGREGATION["tnn"]
-        else:
-            return EXTREME_PERIOD_AGGREGATION["default"]
-
-
-# =============================================================================
-# TIME FILTERS
-# =============================================================================
-
-
-def get_time_filters_variable(variable: str) -> dict:
-    """
-    Get time filters dictionary for a variable.
-    
-    Used in config['products'][product_key]['time_filters'].
-    
-    Parameters
-    ----------
-    variable : str
-        Variable name
-        
-    Returns
-    -------
-    dict
-        Dictionary mapping time filter names to month ranges
-    """
-    if variable in ANNUAL_ONLY_VARS:
-        return {"Annual": "01-12"}
-    else:
-        return {
-            "Annual": "01-12",
-            "DecFeb": "12-02",
-            "MarMay": "03-05",
-            "JunAug": "06-08",
-            "SepNov": "09-11",
-            "Jan": "01-01",
-            "Feb": "02-02",
-            "Mar": "03-03",
-            "Apr": "04-04",
-            "May": "05-05",
-            "Jun": "06-06",
-            "Jul": "07-07",
-            "Aug": "08-08",
-            "Sep": "09-09",
-            "Oct": "10-10",
-            "Nov": "11-11",
-            "Dec": "12-12"
-        }
 
 
 # =============================================================================
@@ -240,14 +64,6 @@ URBAN_VARS = [
     "fd", "cd", "hd", "huss", "sfcwind", "rsds", "rlds"
 ]
 
-# Land-only variables
-LAND_ONLY_VARS = [
-    "mrro", "mrsos", "tx35", "tx40", "tx35bals", "tx40bals",
-    "tx35baisimip", "tx40baisimip"
-]
-
-# Ocean-only variables
-OCEAN_ONLY_VARS = ["sst", "siconc"]
 
 # SPEI/SPI derived categorical variables
 SPEI_DERIVED_VARS = [
@@ -340,6 +156,187 @@ VERSION_VARIABLES = {
 }
 
 
+# =============================================================================
+# FUNCTIONS
+# =============================================================================
+
+def get_anomaly_dict(variable: str, project: str) -> dict:
+    """
+    Get anomaly configuration for a variable and project.
+    
+    Used in config['products'][product_key]['magnitudes'].
+    
+    Parameters
+    ----------
+    variable : str
+        Variable name
+    project : str
+        Project name
+        
+    Returns
+    -------
+    dict
+        Dictionary with anomaly configuration:
+        - anomaly: "relative" or "absolute"
+        - anom: True (always calculate absolute anomaly)
+        - anom_consensus: True/False (consensus for projections only)
+        - relanom: True/False (calculate relative anomaly)
+        - relanom_consensus: True/False (consensus for projections only)
+    """
+    # Remove suffixes like 'bals' or 'baisimip'
+    var_base = index_only(variable)
+    
+    result = {}
+    
+    # Determine anomaly type
+    if var_base in RELATIVE_ANOMALY_VARS:
+        result["anomaly"] = "relative"
+    else:
+        result["anomaly"] = "absolute"
+    
+    # Always calculate absolute anomaly
+    result["anom"] = True
+    result["anom_consensus"] = True
+    
+    # Activate relative anomaly if needed
+    if result["anomaly"] == "relative":
+        result["relanom"] = True
+        result["relanom_consensus"] = True
+    else:
+        result["relanom"] = False
+        result["relanom_consensus"] = False
+    
+    # Deactivate consensus for observation datasets
+    if project not in PROJECTION_PROJECTS:
+        result["anom_consensus"] = False
+        result["relanom_consensus"] = False
+    
+    return result
+
+
+def get_time_aggregation(variable: str) -> str:
+    """
+    Get time aggregation function for a variable.
+    
+    Used in config['products'][product_key]['time_aggregation_stat'].
+    
+    Parameters
+    ----------
+    variable : str
+        Variable name
+        
+    Returns
+    -------
+    str
+        Aggregation function: "mean", "min", "max", or "sum"
+        
+    Raises
+    ------
+    ValueError
+        If variable not found in aggregation file
+    """
+    yaml = YAML()
+    
+    # Remove suffixes like 'bals', 'baisimip', 'fullperiod' to get base variable
+    var_base = index_only(variable)
+    
+    # Also remove 'fullperiod' suffix
+    if "fullperiod" in var_base:
+        var_base = var_base.replace("fullperiod", "")
+    
+    # Also remove 'reference' suffix
+    if "reference" in var_base:
+        var_base = var_base.replace("reference", "")
+    
+    # Load aggregation functions from YAML file
+    with open(AGG_FUNCTIONS_FILE) as f:
+        agg_dict = yaml.load(f)
+    
+    # Check both full variable name and base variable name
+    if var_base in agg_dict.get("mean", []) or variable in agg_dict.get("mean", []):
+        return "mean"
+    elif var_base in agg_dict.get("min", []) or variable in agg_dict.get("min", []):
+        return "min"
+    elif var_base in agg_dict.get("max", []) or variable in agg_dict.get("max", []):
+        return "max"
+    elif var_base in agg_dict.get("sum", []) or variable in agg_dict.get("sum", []):
+        return "sum"
+    else:
+        raise ValueError(
+            f"Variable {variable} (base: {var_base}) not found in "
+            f"aggregation file {AGG_FUNCTIONS_FILE}"
+        )
+
+
+def get_period_aggregation(variable: str, extreme: bool) -> str:
+    """
+    Get period aggregation statistic for a variable.
+    
+    Used in config['products'][product_key]['period_aggregation_stat'].
+    
+    Parameters
+    ----------
+    variable : str
+        Variable name
+    extreme : bool
+        Whether this is an extreme product
+        
+    Returns
+    -------
+    str
+        Period aggregation statistic
+    """
+    if variable in SPEI_DERIVED_VARS:
+        return "mean_with_time_filter"
+    if not extreme:
+        return "mean"
+    else:
+        if variable == "tnn":
+            return EXTREME_PERIOD_AGGREGATION["tnn"]
+        else:
+            return EXTREME_PERIOD_AGGREGATION["default"]
+
+
+def get_time_filters_variable(variable: str) -> dict:
+    """
+    Get time filters dictionary for a variable.
+    
+    Used in config['products'][product_key]['time_filters'].
+    
+    Parameters
+    ----------
+    variable : str
+        Variable name
+        
+    Returns
+    -------
+    dict
+        Dictionary mapping time filter names to month ranges
+    """
+    if variable in ANNUAL_ONLY_VARS:
+        return {"Annual": "01-12"}
+    else:
+        return {
+            "Annual": "01-12",
+            "DecFeb": "12-02",
+            "MarMay": "03-05",
+            "JunAug": "06-08",
+            "SepNov": "09-11",
+            "Jan": "01-01",
+            "Feb": "02-02",
+            "Mar": "03-03",
+            "Apr": "04-04",
+            "May": "05-05",
+            "Jun": "06-06",
+            "Jul": "07-07",
+            "Aug": "08-08",
+            "Sep": "09-09",
+            "Oct": "10-10",
+            "Nov": "11-11",
+            "Dec": "12-12"
+        }
+
+
 def get_variables_for_version(project: str, version: str = "v2") -> list:
     """
     Get the list of variables for a given project and version.
@@ -361,7 +358,6 @@ def get_variables_for_version(project: str, version: str = "v2") -> list:
     ValueError
         If version is unknown or dataset object required but not available
     """
-    
     if version not in VERSION_VARIABLES:
         raise ValueError(f"Unknown version: {version}")
     
@@ -376,13 +372,8 @@ def get_variables_for_version(project: str, version: str = "v2") -> list:
     # Get variable list
     if var_config == "all":
         var_list = get_project_variables(project, include_bias_adjustment=True)
-
     else:
         var_list = var_config.copy()
-
-    for var in VAR_NOT_CALCULATED:
-        if var in var_list:
-            var_list.remove(var)
     
     # Remove variables not to be calculated
     var_list = [v for v in var_list if v not in VAR_NOT_CALCULATED]
